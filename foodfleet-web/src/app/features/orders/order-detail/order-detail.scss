@@ -1,0 +1,340 @@
+/* ── Loading / Not Found ─────────────────────────────────────────── */
+.loading-screen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 60vh; color: var(--text-muted); font-size: 1rem; gap: 0.75rem;
+  &::before { content: '🍽️'; font-size: 1.5rem; animation: spin 1.5s linear infinite; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+.not-found {
+  text-align: center; padding: 5rem 2rem; color: var(--text-muted);
+  p { margin-bottom: 1rem; }
+  a { color: var(--primary); font-weight: 600; &:hover { text-decoration: underline; } }
+}
+
+/* ── Page shell ──────────────────────────────────────────────────── */
+.page { max-width: 1040px; margin: 0 auto; padding: 2rem 1.5rem; animation: fadeIn 0.3s ease; }
+
+/* ── Page header ─────────────────────────────────────────────────── */
+.page-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 2rem; gap: 1rem;
+}
+.back-link {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: var(--surface); border: 1.5px solid var(--border);
+  color: var(--text-secondary); font-size: 0.82rem; font-weight: 700;
+  padding: 0.4rem 0.9rem; border-radius: 20px;
+  cursor: pointer; font-family: inherit; margin-bottom: 0.75rem;
+  transition: all 0.2s; box-shadow: var(--shadow-sm);
+  &:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); transform: translateX(-2px); }
+}
+.page-header h2 {
+  font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.25rem;
+}
+.order-date { color: var(--text-muted); font-size: 0.82rem; margin: 0; }
+
+.header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem; flex-shrink: 0; }
+
+/* Status badge */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.35rem 0.9rem; border-radius: 20px;
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
+  &::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.7; }
+  &.placed    { background: #e8f4fd; color: #1a7abf; }
+  &.confirmed { background: #e8f0fe; color: #3b5bdb; }
+  &.preparing { background: #fff3e0; color: #e67700; }
+  &.ready     { background: #e8f5e9; color: #2e7d32; }
+  &.pickedup  { background: #f3e5f5; color: #7b1fa2; }
+  &.delivered { background: #e8f5e9; color: #1b5e20; }
+  &.cancelled { background: #fce8ee; color: #c62828; }
+  &.rejected  { background: #fce8ee; color: #c62828; }
+}
+
+.btn-cancel {
+  padding: 0.45rem 1.1rem; background: none;
+  border: 1.5px solid var(--danger); color: var(--danger);
+  border-radius: 8px; cursor: pointer; font-size: 0.82rem; font-weight: 600;
+  transition: all 0.2s; font-family: inherit;
+  &:hover:not(:disabled) { background: #fce8ee; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+/* ── Restaurant banner ───────────────────────────────────────────── */
+.restaurant-banner {
+  display: flex; align-items: center; gap: 1rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem; box-shadow: var(--shadow);
+}
+.restaurant-logo-wrap {
+  width: 52px; height: 52px; border-radius: 10px; overflow: hidden; flex-shrink: 0;
+  background: var(--surface-alt); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  img { width: 100%; height: 100%; object-fit: cover; }
+  .logo-placeholder { font-size: 1.4rem; }
+}
+.restaurant-info { flex: 1; }
+.restaurant-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.restaurant-name  { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-top: 0.1rem; }
+.btn-reorder {
+  padding: 0.45rem 1rem; border-radius: 8px; font-size: 0.82rem; font-weight: 700;
+  background: linear-gradient(135deg, var(--primary), var(--accent)); color: white;
+  text-decoration: none; white-space: nowrap; flex-shrink: 0; transition: opacity 0.15s;
+  &:hover { opacity: 0.88; }
+}
+
+/* ── Content grid ────────────────────────────────────────────────── */
+.content-grid { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; align-items: start; }
+.left-col  { display: flex; flex-direction: column; gap: 1.25rem; }
+.right-col { position: sticky; top: 84px; }
+
+/* ── Card ────────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden;
+}
+.card-title {
+  font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+  background: var(--surface-alt);
+}
+
+/* ── Items list ──────────────────────────────────────────────────── */
+.order-item {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--border);
+  gap: 1rem;
+  &:last-of-type { border-bottom: none; }
+}
+.item-details { display: flex; flex-direction: column; gap: 0.2rem; flex: 1; }
+.item-name-row { display: flex; align-items: center; gap: 0.5rem; }
+.item-name { font-weight: 600; font-size: 0.9rem; color: var(--text-primary); }
+.item-qty {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; height: 22px; padding: 0 6px;
+  background: var(--surface-alt); border: 1px solid var(--border);
+  border-radius: 6px; font-size: 0.72rem; font-weight: 700; color: var(--text-secondary);
+}
+.item-customizations { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
+.item-price { font-weight: 700; color: var(--accent); font-size: 0.9rem; white-space: nowrap; padding-top: 0.1rem; }
+
+/* ── Price breakdown ─────────────────────────────────────────────── */
+.price-breakdown {
+  padding: 0.875rem 1.25rem; background: var(--surface-alt);
+  border-top: 1px solid var(--border);
+}
+.price-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.875rem; color: var(--text-secondary); padding: 0.3rem 0;
+  &.muted { color: var(--text-muted); font-size: 0.82rem; }
+  &.total {
+    font-weight: 800; font-size: 1rem; color: var(--text-primary);
+    padding-top: 0.6rem; margin-top: 0.35rem;
+    border-top: 1.5px solid var(--border);
+    span:last-child { color: var(--primary); }
+  }
+}
+
+/* ── Order details card ──────────────────────────────────────────── */
+.detail-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border); gap: 1rem;
+  font-size: 0.875rem;
+  &:last-child { border-bottom: none; }
+}
+.detail-label { color: var(--text-muted); font-weight: 500; flex-shrink: 0; }
+.detail-val { color: var(--text-primary); font-weight: 600; text-align: right; }
+
+/* ── Location card ───────────────────────────────────────────────── */
+.location-card .card-title { background: linear-gradient(135deg, rgba(45,106,79,0.08), rgba(82,183,136,0.08)); }
+.location-body { padding: 1rem 1.25rem; display: flex; align-items: center; gap: 0.75rem; }
+.location-pin { font-size: 1.5rem; }
+.location-text { font-weight: 700; color: var(--accent); font-size: 0.9rem; margin: 0 0 0.15rem; }
+.location-hint { color: var(--text-muted); font-size: 0.75rem; margin: 0; display: flex; align-items: center; gap: 0.3rem;
+  &::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #4caf50; animation: pulse 1.5s ease-in-out infinite; }
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* ── Tracking card ───────────────────────────────────────────────── */
+.tracking-steps { display: flex; flex-direction: column; padding: 1.25rem; gap: 0; }
+
+.step {
+  display: flex; gap: 0.875rem; position: relative;
+  padding-bottom: 1.5rem;
+  &:last-child { padding-bottom: 0; }
+
+  /* connector line drawn as a pseudo-element on the dot wrapper */
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 15px; top: 32px;
+    width: 2px; height: calc(100% - 16px);
+    background: var(--border);
+    border-radius: 1px;
+  }
+  &.done:not(:last-child)::after {
+    background: linear-gradient(to bottom, var(--primary), var(--accent));
+  }
+}
+
+.step-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--surface-alt); border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; flex-shrink: 0; position: relative; z-index: 1;
+  color: var(--text-muted); transition: all 0.3s;
+
+  .step.done & {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-color: transparent; color: white;
+  }
+  .step.active & {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(45,106,79,0.12);
+  }
+  &.cancelled { background: var(--danger); border-color: transparent; color: white; }
+}
+
+.step-body { padding-top: 0.35rem; flex: 1; }
+.step-name {
+  font-weight: 600; font-size: 0.875rem; color: var(--text-muted); transition: color 0.2s;
+  .step.done &  { color: var(--text-primary); }
+  .step.active & { color: var(--primary); }
+}
+.step-time, .step-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem; }
+.step.cancelled .step-name { color: var(--danger); }
+
+/* ── Review section ──────────────────────────────────────────────── */
+.review-section { margin-top: 1.5rem; }
+
+.review-card {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden;
+
+  .review-card-header {
+    padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+    background: var(--surface-alt);
+    h3 { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.2rem; }
+    p  { color: var(--text-muted); font-size: 0.82rem; margin: 0; }
+  }
+  .review-card-body { padding: 1.5rem; }
+}
+
+.star-row {
+  display: flex; align-items: center; gap: 0.35rem; margin-bottom: 1.25rem;
+  .star-btn {
+    font-size: 1.75rem; background: none; border: none; cursor: pointer;
+    color: var(--border); transition: all 0.15s; line-height: 1; padding: 0;
+    &.filled { color: #f0c040; text-shadow: 0 0 8px rgba(240,192,64,0.5); }
+    &:hover { transform: scale(1.2); color: #f0c040; }
+  }
+  .rating-label {
+    font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);
+    margin-left: 0.5rem; min-width: 90px;
+  }
+}
+
+.review-card textarea {
+  width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border);
+  border-radius: 8px; font-size: 0.875rem; background: var(--bg);
+  color: var(--text-primary); resize: vertical; min-height: 90px;
+  margin-bottom: 1rem; font-family: inherit; box-sizing: border-box;
+  &:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(45,106,79,0.12); }
+  &::placeholder { color: var(--text-muted); }
+}
+
+.btn-submit-review {
+  padding: 0.7rem 1.75rem; background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem;
+  cursor: pointer; transition: all 0.2s; font-family: inherit;
+  &:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+}
+
+.review-error { margin-top: 0.75rem; color: var(--danger); font-size: 0.82rem; }
+
+.review-thanks {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: var(--shadow); border: 1px solid var(--border);
+  padding: 2.5rem; text-align: center;
+  .thanks-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  h3 { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.4rem; }
+  p  { color: var(--text-muted); font-size: 0.875rem; margin: 0; }
+}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .content-grid { grid-template-columns: 1fr; }
+  .right-col { position: static; }
+  .page-header { flex-direction: column; gap: 0.75rem; }
+  .header-right { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+}
+
+/* ── About the Restaurant card ───────────────────────────────────── */
+.about-restaurant-card .card-title {
+  background: linear-gradient(135deg, rgba(45,106,79,0.07), rgba(82,183,136,0.07));
+}
+
+.about-body { padding: 1.25rem; }
+
+.about-hero {
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;
+}
+
+.about-logo {
+  width: 64px; height: 64px; border-radius: 14px; overflow: hidden; flex-shrink: 0;
+  border: 2px solid var(--border); background: var(--surface-alt);
+  display: flex; align-items: center; justify-content: center;
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.about-logo-placeholder { font-size: 1.8rem; }
+
+.about-info { flex: 1; }
+
+.about-name {
+  font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.2rem;
+}
+
+.about-cuisine {
+  font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem;
+}
+
+.about-rating {
+  display: flex; align-items: center; gap: 0.3rem;
+  .star { color: #e9c46a; font-size: 1rem; }
+  .rating-val { font-weight: 700; font-size: 0.9rem; color: var(--text-primary); }
+  .rating-count { font-size: 0.78rem; color: var(--text-muted); }
+}
+
+.about-desc {
+  font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;
+  margin-bottom: 1rem; padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.about-chips {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem;
+}
+
+.about-chip {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: var(--surface-alt); border: 1px solid var(--border);
+  border-radius: 20px; padding: 0.35rem 0.75rem;
+  font-size: 0.78rem; color: var(--text-secondary); font-weight: 500;
+  .chip-icon { font-size: 0.85rem; }
+}
+
+.btn-visit-restaurant {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.55rem 1.25rem; border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary), #52b788);
+  color: white; font-weight: 700; font-size: 0.875rem;
+  text-decoration: none; transition: all 0.2s;
+  box-shadow: 0 3px 12px rgba(45,106,79,0.25);
+  &:hover { opacity: 0.88; transform: translateY(-1px); }
+}

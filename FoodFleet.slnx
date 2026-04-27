@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Services/">
+    <Project Path="Services/Delivery.API/Delivery.API.csproj" />
+    <Project Path="Services/Identity.API/Identity.API.csproj" />
+    <Project Path="Services/Notification.API/Notification.API.csproj" />
+    <Project Path="Services/Order.API/Order.API.csproj" />
+    <Project Path="Services/Payment.API/Payment.API.csproj" />
+    <Project Path="Services/Restaurant.API/Restaurant.API.csproj" />
+  </Folder>
+  <Folder Name="/Shared/">
+    <Project Path="Shared/FoodFleet.Shared.Events/FoodFleet.Shared.Events.csproj" />
+    <Project Path="Shared/FoodFleet.Shared.Messaging/FoodFleet.Shared.Messaging.csproj" />
+  </Folder>
+  <Project Path="ApiGateway/ApiGateway.csproj" />
+</Solution>

@@ -1,0 +1,92 @@
+.auth-page {
+  min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr;
+  @media (max-width: 768px) { grid-template-columns: 1fr; .auth-visual { display: none; } }
+}
+
+.auth-visual {
+  background: linear-gradient(145deg, #1b4332 0%, #2d6a4f 40%, #40916c 70%, #52b788 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 3rem; color: white; position: relative; overflow: hidden;
+  border-right: 1px solid rgba(45,106,79,0.3);
+
+  &::before {
+    content: ''; position: absolute; width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(82,183,136,0.25) 0%, transparent 70%);
+    border-radius: 50%; top: -150px; right: -150px; animation: pulse 6s ease-in-out infinite;
+  }
+  &::after {
+    content: ''; position: absolute; width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(233,196,106,0.2) 0%, transparent 70%);
+    border-radius: 50%; bottom: -100px; left: -100px; animation: pulse 8s ease-in-out infinite reverse;
+  }
+
+  .visual-logo { font-size: 4.5rem; margin-bottom: 1.5rem; position: relative; z-index: 1; filter: drop-shadow(0 0 20px rgba(82,183,136,0.6)); }
+  h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.75rem; position: relative; z-index: 1; text-shadow: 0 0 30px rgba(82,183,136,0.5); }
+  p  { font-size: 1rem; opacity: 0.85; text-align: center; max-width: 280px; position: relative; z-index: 1; }
+
+  .features {
+    margin-top: 2.5rem; display: flex; flex-direction: column; gap: 0.75rem;
+    position: relative; z-index: 1;
+    .feature { display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; opacity: 0.9; }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+.auth-form-side {
+  display: flex; align-items: center; justify-content: center; padding: 3rem 2rem;
+  background: var(--bg);
+}
+
+.auth-card {
+  width: 100%; max-width: 420px;
+  .auth-header {
+    margin-bottom: 2rem;
+    h2 { font-size: 1.85rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.35rem; }
+    .subtitle { color: var(--text-muted); font-size: 0.95rem; }
+  }
+}
+
+.field {
+  margin-bottom: 1.25rem;
+  label { display: block; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.4rem; color: var(--text-secondary); }
+  input, select {
+    width: 100%; padding: 0.75rem 1rem;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 0.95rem; background: var(--surface); color: var(--text-primary);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    &:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(45,106,79,0.15); }
+    &::placeholder { color: var(--text-muted); }
+    option { background: var(--surface); color: var(--text-primary); }
+  }
+}
+
+.btn-primary {
+  width: 100%; padding: 0.85rem;
+  background: linear-gradient(135deg, #2d6a4f, #52b788);
+  color: white; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 700;
+  cursor: pointer; margin-top: 0.5rem; transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(45,106,79,0.3);
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(45,106,79,0.4); }
+  &:active:not(:disabled) { transform: translateY(0); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.error {
+  background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.3);
+  color: var(--danger); padding: 0.65rem 0.9rem; border-radius: 6px; font-size: 0.875rem; margin-bottom: 1rem;
+}
+.success {
+  background: rgba(22,163,74,0.08); border: 1px solid rgba(22,163,74,0.3);
+  color: var(--success); padding: 0.65rem 0.9rem; border-radius: 6px; font-size: 0.875rem; margin-bottom: 1rem;
+}
+
+.links {
+  margin-top: 1.5rem; text-align: center; font-size: 0.875rem; color: var(--text-muted);
+  display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;
+  a { color: var(--primary); font-weight: 600; &:hover { text-decoration: underline; color: var(--primary-dark); } }
+}

@@ -1,0 +1,12 @@
+﻿{
+    "profiles": {
+        "Delivery.API": {
+            "commandName": "Project",
+            "dotnetRunMessages": true,
+            "applicationUrl": "http://localhost:5005",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        }
+    }
+}

@@ -1,0 +1,235 @@
+@keyframes fadeIn  { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+/* ── Page ────────────────────────────────────────────────────────── */
+.page {
+  max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.page-header {
+  display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem;
+  h2 { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.2rem; }
+  .subtitle { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
+}
+
+.btn-browse {
+  padding: 0.55rem 1.25rem; background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white; border-radius: 8px; font-weight: 600; font-size: 0.875rem;
+  text-decoration: none; white-space: nowrap; flex-shrink: 0;
+  &:hover { opacity: 0.88; }
+}
+
+/* ── States ──────────────────────────────────────────────────────── */
+.loading-state, .empty-state, .error-state {
+  text-align: center; padding: 5rem 2rem; color: var(--text-muted);
+  .icon { font-size: 3rem; margin-bottom: 1rem; }
+  p { margin-bottom: 1.25rem; font-size: 0.95rem; }
+  button { padding: 0.5rem 1.25rem; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: inherit; }
+}
+
+/* ── Orders list ─────────────────────────────────────────────────── */
+.orders-list { display: flex; flex-direction: column; gap: 0.875rem; }
+
+.order-card {
+  background: var(--surface); border-radius: var(--radius);
+  padding: 1.1rem 1.25rem; box-shadow: var(--shadow); border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 1.1rem;
+  text-decoration: none; color: inherit;
+  transition: box-shadow 0.2s, transform 0.15s, border-color 0.15s;
+  &:hover {
+    box-shadow: var(--shadow-lg); transform: translateY(-2px);
+    border-color: rgba(45,106,79,0.3);
+  }
+}
+
+/* Restaurant logo */
+.restaurant-logo {
+  width: 56px; height: 56px; border-radius: 12px; overflow: hidden; flex-shrink: 0;
+  background: var(--surface-alt); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  img { width: 100%; height: 100%; object-fit: cover; }
+  .logo-placeholder { font-size: 1.5rem; }
+}
+
+/* Main info */
+.order-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+
+.restaurant-name {
+  font-weight: 700; font-size: 1rem; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.order-meta {
+  display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--text-muted);
+  .order-id { font-weight: 600; color: var(--text-secondary); }
+  .dot { opacity: 0.4; }
+}
+
+.order-items {
+  font-size: 0.8rem; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Right side */
+.order-right {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem; flex-shrink: 0;
+}
+
+.order-amount { font-weight: 800; font-size: 1.05rem; color: var(--accent); }
+
+.view-link { font-size: 0.75rem; color: var(--primary); font-weight: 600; }
+
+/* Status badges */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.2rem 0.65rem; border-radius: 20px;
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+  &::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.7; }
+  &.placed    { background: #e8f4fd; color: #1a7abf; }
+  &.confirmed { background: #e8f0fe; color: #3b5bdb; }
+  &.preparing { background: #fff3e0; color: #e67700; }
+  &.ready     { background: #e8f5e9; color: #2e7d32; }
+  &.delivered { background: #e8f5e9; color: #1b5e20; }
+  &.cancelled { background: #fce8ee; color: #c62828; }
+  &.rejected  { background: #fce8ee; color: #c62828; }
+}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .order-card { flex-wrap: wrap; }
+  .order-right { flex-direction: row; align-items: center; width: 100%; justify-content: space-between; }
+}
+
+/* ── Recommendations section ─────────────────────────────────────── */
+.reco-section {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 2px solid var(--border);
+}
+
+.reco-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.reco-title-wrap {
+  display: flex; align-items: center; gap: 0.75rem;
+}
+
+.reco-icon {
+  font-size: 1.5rem;
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.reco-title {
+  font-size: 1.15rem; font-weight: 800; color: var(--text-primary);
+  margin: 0 0 0.1rem; font-family: 'Poppins', sans-serif;
+}
+
+.reco-sub {
+  font-size: 0.8rem; color: var(--text-muted); margin: 0;
+}
+
+.reco-see-all {
+  font-size: 0.82rem; font-weight: 700; color: var(--primary);
+  text-decoration: none; white-space: nowrap;
+  &:hover { text-decoration: underline; }
+}
+
+/* ── Card grid ── */
+.reco-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.reco-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  display: flex; flex-direction: column;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(45,106,79,0.3);
+  }
+}
+
+.reco-img {
+  position: relative;
+  height: 130px;
+  background: var(--surface-alt);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+
+  img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+  .reco-card:hover img { transform: scale(1.05); }
+}
+
+.reco-img-placeholder { font-size: 3rem; }
+
+.reco-open-badge {
+  position: absolute; top: 0.6rem; right: 0.6rem;
+  background: rgba(45,106,79,0.88);
+  color: white; font-size: 0.68rem; font-weight: 700;
+  padding: 0.2rem 0.55rem; border-radius: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.reco-body {
+  padding: 0.875rem 1rem 1rem;
+  display: flex; flex-direction: column; gap: 0.3rem;
+  flex: 1;
+}
+
+.reco-name {
+  font-weight: 700; font-size: 0.95rem; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.reco-cuisine {
+  font-size: 0.75rem; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.reco-meta {
+  display: flex; align-items: center; gap: 0.35rem;
+  font-size: 0.78rem; color: var(--text-secondary); font-weight: 600;
+  margin-top: 0.1rem;
+}
+
+.reco-dot { opacity: 0.4; }
+
+.reco-reason {
+  display: flex; align-items: flex-start; gap: 0.35rem;
+  margin-top: auto; padding-top: 0.6rem;
+  font-size: 0.75rem; color: var(--primary); font-weight: 600;
+  line-height: 1.4;
+  background: var(--primary-light);
+  margin: 0.6rem -1rem -1rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.reason-icon { font-size: 0.8rem; flex-shrink: 0; margin-top: 0.05rem; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .reco-grid { grid-template-columns: 1fr 1fr; }
+  .reco-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+}
+
+@media (max-width: 400px) {
+  .reco-grid { grid-template-columns: 1fr; }
+}

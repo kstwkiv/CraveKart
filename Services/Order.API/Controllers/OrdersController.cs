@@ -1,0 +1,93 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Order.API.Application.Commands;
+using Order.API.Application.DTOs;
+using Order.API.Application.Interfaces;
+using Order.API.Domain.Enums;
+
+namespace Order.API.Controllers;
+
+[ApiController]
+[Route("api/v1/[controller]")]
+[Authorize]
+public class OrdersController : ControllerBase
+{
+    private readonly IOrderService _orderService;
+
+    public OrdersController(IOrderService orderService)
+    {
+        _orderService = orderService;
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Customer")]
+    public async Task<IActionResult> PlaceOrder([FromBody] PlaceOrderRequest request)
+    {
+        var customerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var customerEmail = User.FindFirstValue(ClaimTypes.Email)!;
+
+        var command = new PlaceOrderCommand(
+            customerId,
+            customerEmail,
+            request.RestaurantId,
+            request.RestaurantName,
+            request.RestaurantLogoUrl,
+            request.DeliveryAddress,
+            request.PaymentMethod,
+            request.Items);
+
+        var result = await _orderService.PlaceOrderAsync(command);
+        return Ok(result);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var result = await _orderService.GetByIdAsync(id);
+        if (result == null) return NotFound();
+        return Ok(result);
+    }
+
+    [HttpGet("customer/{customerId}")]
+    public async Task<IActionResult> GetHistory(Guid customerId)
+    {
+        var result = await _orderService.GetHistoryAsync(customerId);
+        return Ok(result);
+    }
+
+    [HttpPost("{id}/cancel")]
+    [Authorize(Roles = "Customer,Admin")]
+    public async Task<IActionResult> Cancel(Guid id)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _orderService.CancelAsync(new CancelOrderCommand(id, userId));
+        if (!result) return BadRequest("Cannot cancel order.");
+        return Ok("Order cancelled.");
+    }
+
+    [HttpGet("restaurant/{restaurantId}")]
+    [Authorize(Roles = "RestaurantOwner,Admin")]
+    public async Task<IActionResult> GetByRestaurant(Guid restaurantId)
+    {
+        var orders = await _orderService.GetByRestaurantAsync(restaurantId);
+        return Ok(orders);
+    }
+
+    [HttpGet("ready")]
+    [Authorize(Roles = "DeliveryAgent,Admin")]
+    public async Task<IActionResult> GetReadyOrders()
+    {
+        var orders = await _orderService.GetByStatusAsync(OrderStatus.Ready);
+        return Ok(orders);
+    }
+
+    [HttpPatch("{id}/status")]
+    [Authorize(Roles = "RestaurantOwner,Admin,DeliveryAgent")]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] OrderStatus status)
+    {
+        var result = await _orderService.UpdateStatusAsync(new UpdateOrderStatusCommand(id, status));
+        if (!result) return NotFound();
+        return Ok("Status updated.");
+    }
+}

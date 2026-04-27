@@ -1,0 +1,12 @@
+﻿{
+    "profiles": {
+        "Order.API": {
+            "commandName": "Project",
+            "dotnetRunMessages": true,
+            "applicationUrl": "http://localhost:5003",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        }
+    }
+}
