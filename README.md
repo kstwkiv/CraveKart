@@ -4,7 +4,7 @@ A full-stack food delivery platform built with **.NET 10 Microservices** and **A
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 CraveKart follows a **microservices architecture** with an API Gateway routing all requests from the Angular frontend to the appropriate backend service.
 
@@ -28,7 +28,7 @@ Identity.API   Restaurant.API   Order.API   Delivery.API   Payment.API   Notific
 
 ---
 
-## 🚀 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -43,7 +43,7 @@ Identity.API   Restaurant.API   Order.API   Delivery.API   Payment.API   Notific
 
 ---
 
-## 📦 Services
+## Services
 
 ### Identity.API — Authentication & Users
 - Register, login, logout
@@ -83,7 +83,7 @@ Identity.API   Restaurant.API   Order.API   Delivery.API   Payment.API   Notific
 
 ---
 
-## 👥 User Roles
+## User Roles
 
 | Role | Access |
 |---|---|
@@ -94,7 +94,7 @@ Identity.API   Restaurant.API   Order.API   Delivery.API   Payment.API   Notific
 
 ---
 
-## 🛠️ Getting Started
+## Getting Started
 
 ### Prerequisites
 - .NET 10 SDK
@@ -148,7 +148,7 @@ Open **http://localhost:4200**
 
 ---
 
-## 🌐 API Ports
+## API Ports
 
 | Service | Port |
 |---|---|
@@ -162,7 +162,7 @@ Open **http://localhost:4200**
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 - 🔐 JWT authentication with role-based access control
 - 🍽️ Restaurant browsing with cuisine filters, search, and sorting
@@ -177,7 +177,7 @@ Open **http://localhost:4200**
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 FoodFleetMicroservices/
@@ -196,6 +196,6 @@ FoodFleetMicroservices/
 
 ---
 
-## 📄 License
+## License
 
 MIT License — feel free to use, modify, and distribute.
