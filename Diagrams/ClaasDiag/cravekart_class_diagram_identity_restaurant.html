@@ -1,0 +1,131 @@
+
+<h2 class="sr-only">CraveKart class diagram — Identity.API and Restaurant.API domain models</h2>
+<style>
+#cd1 svg { width:100%; height:auto; }
+</style>
+<div id="cd1"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    primaryColor: dark ? '#2a2a36' : '#EEEDFE',
+    primaryBorderColor: dark ? '#534AB7' : '#7F77DD',
+    primaryTextColor: dark ? '#CECBF6' : '#26215C',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+    classText: dark ? '#CECBF6' : '#26215C',
+  },
+});
+const diagram = `classDiagram
+  class User {
+    +Guid Id
+    +string Email
+    +string PasswordHash
+    +UserRole Role
+    +string FirstName
+    +string LastName
+    +DateTime CreatedAt
+    +Register() void
+    +Login() string
+    +ResetPassword(otp) void
+    +GenerateJwt() string
+  }
+
+  class OtpToken {
+    +Guid Id
+    +Guid UserId
+    +string Token
+    +DateTime ExpiresAt
+    +bool Used
+    +IsValid() bool
+    +Invalidate() void
+  }
+
+  class Restaurant {
+    +Guid Id
+    +Guid OwnerId
+    +string Name
+    +string CuisineType
+    +string Address
+    +double Latitude
+    +double Longitude
+    +RestaurantStatus Status
+    +float AvgRating
+    +Approve() void
+    +Reject() void
+    +UpdateMenu() void
+  }
+
+  class MenuCategory {
+    +Guid Id
+    +Guid RestaurantId
+    +string Name
+    +int SortOrder
+    +AddItem(item) void
+    +RemoveItem(id) void
+  }
+
+  class MenuItem {
+    +Guid Id
+    +Guid CategoryId
+    +string Name
+    +decimal Price
+    +bool IsAvailable
+    +string ImageUrl
+    +ToggleAvailability() void
+  }
+
+  class RestaurantImage {
+    +Guid Id
+    +Guid RestaurantId
+    +string Url
+    +bool IsPrimary
+  }
+
+  class Review {
+    +Guid Id
+    +Guid RestaurantId
+    +Guid CustomerId
+    +int Rating
+    +string Comment
+    +DateTime CreatedAt
+    +Validate() bool
+  }
+
+  class UserRole {
+    <<enumeration>>
+    Customer
+    RestaurantOwner
+    DeliveryAgent
+    Admin
+  }
+
+  class RestaurantStatus {
+    <<enumeration>>
+    PendingApproval
+    Approved
+    Rejected
+    Suspended
+  }
+
+  User "1" --> "0..*" OtpToken : generates
+  User "1" --> "0..*" Restaurant : owns
+  User "1" --> "0..*" Review : writes
+  Restaurant "1" --> "0..*" MenuCategory : has
+  Restaurant "1" --> "0..*" RestaurantImage : has
+  Restaurant "1" --> "0..*" Review : receives
+  MenuCategory "1" --> "0..*" MenuItem : contains
+  User --> UserRole : role
+  Restaurant --> RestaurantStatus : status
+`;
+const { svg } = await mermaid.render('cd1-svg', diagram);
+document.getElementById('cd1').innerHTML = svg;
+</script>

@@ -1,0 +1,126 @@
+
+<h2 class="sr-only">CraveKart entity-relationship diagram — order, payment, and delivery agent entities</h2>
+<style>
+#erd2 svg { width:100%; height:auto; }
+#erd2 svg.erDiagram .divider path { stroke-opacity:0.4; }
+#erd2 svg.erDiagram .row-rect-odd path,
+#erd2 svg.erDiagram .row-rect-odd rect,
+#erd2 svg.erDiagram .row-rect-even path,
+#erd2 svg.erDiagram .row-rect-even rect { stroke:none !important; }
+</style>
+<div id="erd2"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    primaryColor: dark ? '#1e2a26' : '#E1F5EE',
+    primaryBorderColor: dark ? '#1D9E75' : '#0F6E56',
+    primaryTextColor: dark ? '#9FE1CB' : '#04342C',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+    attributeBackgroundColorEven: dark ? '#182220' : '#F2FAF7',
+    attributeBackgroundColorOdd: dark ? '#1e2a26' : '#E1F5EE',
+  },
+});
+const diagram = `erDiagram
+  ORDER {
+    uuid id PK
+    uuid customerId FK
+    uuid restaurantId FK
+    uuid deliveryAgentId FK
+    enum status
+    decimal totalAmount
+    decimal deliveryFee
+    string deliveryAddress
+    timestamp placedAt
+    timestamp deliveredAt
+  }
+  ORDER_ITEM {
+    uuid id PK
+    uuid orderId FK
+    uuid menuItemId FK
+    string itemName
+    decimal unitPrice
+    int quantity
+  }
+  ORDER_STATUS_LOG {
+    uuid id PK
+    uuid orderId FK
+    enum status
+    timestamp changedAt
+    uuid changedBy FK
+  }
+  PAYMENT {
+    uuid id PK
+    uuid orderId FK
+    enum method
+    enum status
+    decimal amount
+    string transactionRef
+    timestamp processedAt
+  }
+  DELIVERY_AGENT {
+    uuid id PK
+    uuid userId FK
+    string vehicleType
+    string vehicleNumber
+    bool isAvailable
+    decimal totalEarnings
+    timestamp registeredAt
+  }
+  AGENT_LOCATION {
+    uuid id PK
+    uuid agentId FK
+    float latitude
+    float longitude
+    timestamp recordedAt
+  }
+  AGENT_EARNING {
+    uuid id PK
+    uuid agentId FK
+    uuid orderId FK
+    decimal amount
+    timestamp earnedAt
+  }
+
+  ORDER ||--o{ ORDER_ITEM : "contains"
+  ORDER ||--o{ ORDER_STATUS_LOG : "tracks"
+  ORDER ||--|| PAYMENT : "paid via"
+  ORDER ||--o| DELIVERY_AGENT : "assigned to"
+  DELIVERY_AGENT ||--o{ AGENT_LOCATION : "emits"
+  DELIVERY_AGENT ||--o{ AGENT_EARNING : "earns"
+  ORDER ||--o{ AGENT_EARNING : "generates"
+`;
+const { svg } = await mermaid.render('erd2-svg', diagram);
+document.getElementById('erd2').innerHTML = svg;
+document.querySelectorAll('#erd2 svg.erDiagram .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+document.querySelectorAll('#erd2 svg.erDiagram .row-rect-odd path, #erd2 svg.erDiagram .row-rect-even path').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>

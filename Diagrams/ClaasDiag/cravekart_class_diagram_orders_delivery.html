@@ -1,0 +1,144 @@
+
+<h2 class="sr-only">CraveKart class diagram — Order.API, Payment.API, and Delivery.API domain models</h2>
+<style>
+#cd2 svg { width:100%; height:auto; }
+</style>
+<div id="cd2"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    primaryColor: dark ? '#1e2a26' : '#E1F5EE',
+    primaryBorderColor: dark ? '#1D9E75' : '#0F6E56',
+    primaryTextColor: dark ? '#9FE1CB' : '#04342C',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+    classText: dark ? '#9FE1CB' : '#04342C',
+  },
+});
+const diagram = `classDiagram
+  class Order {
+    +Guid Id
+    +Guid CustomerId
+    +Guid RestaurantId
+    +Guid DeliveryAgentId
+    +OrderStatus Status
+    +decimal TotalAmount
+    +decimal DeliveryFee
+    +string DeliveryAddress
+    +DateTime PlacedAt
+    +Place() void
+    +Confirm() void
+    +AdvanceStatus(status) void
+    +AssignAgent(agentId) void
+    +PublishEvent() void
+  }
+
+  class OrderItem {
+    +Guid Id
+    +Guid OrderId
+    +Guid MenuItemId
+    +string ItemName
+    +decimal UnitPrice
+    +int Quantity
+    +decimal LineTotal()
+  }
+
+  class OrderStatusLog {
+    +Guid Id
+    +Guid OrderId
+    +OrderStatus Status
+    +DateTime ChangedAt
+    +Guid ChangedBy
+  }
+
+  class Payment {
+    +Guid Id
+    +Guid OrderId
+    +PaymentMethod Method
+    +PaymentStatus Status
+    +decimal Amount
+    +string TransactionRef
+    +DateTime ProcessedAt
+    +Process() void
+    +Refund() void
+  }
+
+  class DeliveryAgent {
+    +Guid Id
+    +Guid UserId
+    +string VehicleType
+    +string VehicleNumber
+    +bool IsAvailable
+    +decimal TotalEarnings
+    +ToggleAvailability() void
+    +SelfAssign(orderId) void
+    +ShareLocation(lat, lng) void
+    +MarkDelivered(orderId) void
+    +CreditEarning() void
+  }
+
+  class AgentLocation {
+    +Guid Id
+    +Guid AgentId
+    +double Latitude
+    +double Longitude
+    +DateTime RecordedAt
+    +BroadcastViaSignalR() void
+  }
+
+  class AgentEarning {
+    +Guid Id
+    +Guid AgentId
+    +Guid OrderId
+    +decimal Amount
+    +DateTime EarnedAt
+  }
+
+  class OrderStatus {
+    <<enumeration>>
+    Placed
+    Confirmed
+    Preparing
+    Ready
+    PickedUp
+    Delivered
+    Cancelled
+  }
+
+  class PaymentMethod {
+    <<enumeration>>
+    Card
+    CashOnDelivery
+  }
+
+  class PaymentStatus {
+    <<enumeration>>
+    Pending
+    Completed
+    Failed
+    Refunded
+  }
+
+  Order "1" --> "0..*" OrderItem : contains
+  Order "1" --> "0..*" OrderStatusLog : logged by
+  Order "1" --> "1" Payment : paid via
+  Order --> OrderStatus : status
+  Order "0..*" --> "0..1" DeliveryAgent : assigned to
+  DeliveryAgent "1" --> "0..*" AgentLocation : emits
+  DeliveryAgent "1" --> "0..*" AgentEarning : earns
+  AgentEarning "0..*" --> "1" Order : from
+  Payment --> PaymentMethod : method
+  Payment --> PaymentStatus : status
+`;
+const { svg } = await mermaid.render('cd2-svg', diagram);
+document.getElementById('cd2').innerHTML = svg;
+</script>

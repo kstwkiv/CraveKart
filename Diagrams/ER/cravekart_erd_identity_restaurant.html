@@ -1,0 +1,125 @@
+
+<h2 class="sr-only">CraveKart entity-relationship diagram — identity, restaurant, and review entities across their respective service databases</h2>
+<style>
+#erd1 svg { width:100%; height:auto; }
+#erd1 svg.erDiagram .divider path { stroke-opacity:0.4; }
+#erd1 svg.erDiagram .row-rect-odd path,
+#erd1 svg.erDiagram .row-rect-odd rect,
+#erd1 svg.erDiagram .row-rect-even path,
+#erd1 svg.erDiagram .row-rect-even rect { stroke:none !important; }
+</style>
+<div id="erd1"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    primaryColor: dark ? '#2a2a36' : '#EEEDFE',
+    primaryBorderColor: dark ? '#534AB7' : '#7F77DD',
+    primaryTextColor: dark ? '#CECBF6' : '#26215C',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+    attributeBackgroundColorEven: dark ? '#1e1e28' : '#F7F7FE',
+    attributeBackgroundColorOdd: dark ? '#25253a' : '#EEEDFE',
+  },
+});
+const diagram = `erDiagram
+  USER {
+    uuid id PK
+    string email
+    string passwordHash
+    enum role
+    string firstName
+    string lastName
+    timestamp createdAt
+  }
+  OTP_TOKEN {
+    uuid id PK
+    uuid userId FK
+    string token
+    timestamp expiresAt
+    bool used
+  }
+  RESTAURANT {
+    uuid id PK
+    uuid ownerId FK
+    string name
+    string description
+    string cuisineType
+    string address
+    float latitude
+    float longitude
+    enum status
+    float avgRating
+    timestamp createdAt
+  }
+  MENU_CATEGORY {
+    uuid id PK
+    uuid restaurantId FK
+    string name
+    int sortOrder
+  }
+  MENU_ITEM {
+    uuid id PK
+    uuid categoryId FK
+    string name
+    string description
+    decimal price
+    bool isAvailable
+    string imageUrl
+  }
+  RESTAURANT_IMAGE {
+    uuid id PK
+    uuid restaurantId FK
+    string url
+    bool isPrimary
+  }
+  REVIEW {
+    uuid id PK
+    uuid restaurantId FK
+    uuid customerId FK
+    int rating
+    string comment
+    timestamp createdAt
+  }
+
+  USER ||--o{ OTP_TOKEN : "resets via"
+  USER ||--o{ RESTAURANT : "owns"
+  RESTAURANT ||--o{ MENU_CATEGORY : "has"
+  MENU_CATEGORY ||--o{ MENU_ITEM : "contains"
+  RESTAURANT ||--o{ RESTAURANT_IMAGE : "has"
+  RESTAURANT ||--o{ REVIEW : "receives"
+  USER ||--o{ REVIEW : "writes"
+`;
+const { svg } = await mermaid.render('erd1-svg', diagram);
+document.getElementById('erd1').innerHTML = svg;
+document.querySelectorAll('#erd1 svg.erDiagram .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+document.querySelectorAll('#erd1 svg.erDiagram .row-rect-odd path, #erd1 svg.erDiagram .row-rect-even path').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>
