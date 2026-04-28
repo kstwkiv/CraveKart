@@ -27,8 +27,8 @@ type SortKey = 'rating' | 'delivery' | 'minOrder' | '';
         </div>
         <div class="hero-stats">
           <div class="stat"><div class="stat-num">{{ allRestaurants.length }}+</div><div class="stat-lbl">Restaurants</div></div>
-          <div class="stat"><div class="stat-num">~30 min</div><div class="stat-lbl">Avg Delivery</div></div>
-          <div class="stat"><div class="stat-n  um">4.8 ★</div><div class="stat-lbl">Avg Rating</div></div>
+          <div class="stat"><div class="stat-num">~{{ avgDeliveryTime }} min</div><div class="stat-lbl">Avg Delivery</div></div>
+          <div class="stat"><div class="stat-num">{{ avgRating }} ★</div><div class="stat-lbl">Avg Rating</div></div>
         </div>
       </div>
 
@@ -66,7 +66,7 @@ type SortKey = 'rating' | 'delivery' | 'minOrder' | '';
                   <option value="">Sort: Default</option>
                   <option value="rating">⭐ Top Rated</option>
                   <option value="delivery">🕐 Fastest Delivery</option>
-                  <option value="minOrder">₹ Min Order</option>
+                  <option value="minOrder"> ₹ Min Order</option>
                 </select>
               </div>
 
@@ -161,6 +161,20 @@ export class RestaurantListComponent implements OnInit {
       next: data => { this.allRestaurants = data; this.loading = false; },
       error: () => { this.loading = false; }
     });
+  }
+
+  // ── Hero stats computed from real data ────────────────────────────────
+  get avgRating(): string {
+    const rated = this.allRestaurants.filter(r => r.averageRating > 0);
+    if (!rated.length) return '—';
+    const avg = rated.reduce((s, r) => s + r.averageRating, 0) / rated.length;
+    return avg.toFixed(1);
+  }
+
+  get avgDeliveryTime(): number {
+    if (!this.allRestaurants.length) return 30;
+    const avg = this.allRestaurants.reduce((s, r) => s + r.estimatedDeliveryMinutes, 0) / this.allRestaurants.length;
+    return Math.round(avg);
   }
 
   // ── Derived cuisine list from loaded data ──────────────────────────────
