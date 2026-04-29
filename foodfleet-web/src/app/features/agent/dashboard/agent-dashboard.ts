@@ -74,7 +74,7 @@ interface ActiveDelivery {
               <div class="stat-val">₹{{ displayEarnings | number:'1.0-0' }}</div>
               <div class="stat-lbl">Total Earnings</div>
             </div>
-            <div class="stat-trend">+₹100 per delivery</div>
+            <div class="stat-trend">+₹25 per delivery</div>
             <span class="stat-chevron">{{ activePanel === 'earnings' ? '▲' : '▼' }}</span>
           </div>
           <div class="stat-card deliveries" [class.active]="activePanel === 'deliveries'" (click)="togglePanel('deliveries')">
@@ -125,7 +125,7 @@ interface ActiveDelivery {
             </div>
             <div class="panel-row">
               <span>Earnings per Delivery</span>
-              <strong>₹100.00</strong>
+              <strong>₹25.00</strong>
             </div>
             <div class="panel-row">
               <span>Average per Delivery</span>
@@ -133,10 +133,10 @@ interface ActiveDelivery {
             </div>
             <div class="panel-row muted">
               <span>Next delivery will earn</span>
-              <strong class="green">+₹100</strong>
+              <strong class="green">+₹25</strong>
             </div>
             <div class="panel-note">
-              💡 Earnings are calculated at ₹100 per completed delivery. Payouts are processed weekly.
+              💡 Earnings are calculated at ₹25 per completed delivery. Payouts are processed weekly.
             </div>
           </div>
         </div>

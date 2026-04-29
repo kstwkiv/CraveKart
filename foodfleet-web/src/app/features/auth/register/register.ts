@@ -31,11 +31,11 @@ import { AuthService } from '../../../core/services/auth.service';
           <form [formGroup]="form" (ngSubmit)="submit()">
             <div class="field">
               <label>Full Name</label>
-              <input formControlName="fullName" placeholder="John Doe" />
+              <input formControlName="fullName" placeholder="Sathwika Kurma" />
             </div>
             <div class="field">
               <label>Email address</label>
-              <input type="email" formControlName="email" placeholder="you@example.com" />
+              <input type="email" formControlName="email" placeholder="aaaa@gmail.com" />
             </div>
             <div class="field">
               <label>Mobile Number</label>
@@ -43,7 +43,7 @@ import { AuthService } from '../../../core/services/auth.service';
             </div>
             <div class="field">
               <label>Password</label>
-              <input type="password" formControlName="password" placeholder="Min. 6 characters" />
+              <input type="password" formControlName="password" placeholder="Min. 8 characters" />
             </div>
             <div class="field">
               <label>I am a</label>

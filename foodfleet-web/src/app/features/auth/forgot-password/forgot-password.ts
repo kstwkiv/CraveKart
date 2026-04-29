@@ -20,7 +20,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <form [formGroup]="emailForm" (ngSubmit)="sendOtp()">
             <div class="field">
               <label>Email</label>
-              <input type="email" formControlName="email" placeholder="you@example.com" />
+              <input type="email" formControlName="email" placeholder="aaaa@example.com" />
             </div>
             <div class="error" *ngIf="error">{{ error }}</div>
             <button type="submit" [disabled]="loading || emailForm.invalid" class="btn-primary">
