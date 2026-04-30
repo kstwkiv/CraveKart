@@ -24,6 +24,7 @@ import { AuthResponse } from '../../core/models/auth.models';
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Home</a>
           <a routerLink="/restaurants" routerLinkActive="active" *ngIf="isCustomer()">Browse</a>
           <a routerLink="/orders" routerLinkActive="active" *ngIf="isCustomer()">My Orders</a>
+          <a routerLink="/payments" routerLinkActive="active" *ngIf="isCustomer()">Payments</a>
           <a routerLink="/owner/dashboard" routerLinkActive="active" *ngIf="isOwner()">Dashboard</a>
           <a routerLink="/admin/dashboard" routerLinkActive="active" *ngIf="isAdmin()">Admin</a>
           <a routerLink="/agent/dashboard" routerLinkActive="active" *ngIf="isAgent()">Deliveries</a>

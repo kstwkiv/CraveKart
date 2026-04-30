@@ -130,6 +130,14 @@
       "AuthenticationOptions": { "AuthenticationProviderKey": "Bearer" }
     },
     {
+      "UpstreamPathTemplate": "/api/v1/payments",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/api/v1/payments",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [ { "Host": "localhost", "Port": 5004 } ],
+      "AuthenticationOptions": { "AuthenticationProviderKey": "Bearer" }
+    },
+    {
       "UpstreamPathTemplate": "/api/v1/payments/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "PATCH", "DELETE" ],
       "DownstreamPathTemplate": "/api/v1/payments/{everything}",

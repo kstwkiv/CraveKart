@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { OrderService } from '../../../core/services/order.service';
+import { PaymentService } from '../../../core/services/payment.service';
 import { OrderDto } from '../../../core/models/order.models';
 
 @Component({
@@ -58,6 +59,10 @@ import { OrderDto } from '../../../core/models/order.models';
                   class="btn-deliver" (click)="markDelivered(o)">🏠 Delivered</button>
                 <button *ngIf="getStatus(o) === 'Placed' || getStatus(o) === 'Confirmed'"
                   class="btn-cancel" (click)="cancel(o)">Cancel</button>
+                <button *ngIf="getStatus(o) === 'Cancelled' || getStatus(o) === 'Rejected'"
+                  class="btn-refund" (click)="refund(o)" [disabled]="refundingId === o.id">
+                  {{ refundingId === o.id ? '...' : '💸 Refund' }}
+                </button>
               </td>
             </tr>
             <tr *ngIf="filtered.length === 0">
@@ -90,6 +95,8 @@ import { OrderDto } from '../../../core/models/order.models';
     .actions { display: flex; gap: 0.4rem; }
     .btn-view { padding: 0.3rem 0.7rem; background: var(--primary); color: white; border-radius: 6px; font-size: 0.78rem; font-weight: 600; text-decoration: none; }
     .btn-cancel { padding: 0.3rem 0.7rem; background: var(--danger); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600; }
+    .btn-refund { padding: 0.3rem 0.7rem; background: #1a237e; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600; }
+    .btn-refund:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-deliver { padding: 0.3rem 0.7rem; background: var(--accent, #1a9090); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600; }
     .empty { text-align: center; color: var(--text-muted); padding: 2rem; }
     .loading { text-align: center; padding: 3rem; color: var(--text-muted); }
@@ -100,13 +107,14 @@ export class AdminOrdersComponent implements OnInit {
   filtered: OrderDto[] = [];
   loading = false;
   activeStatus = 'All';
+  refundingId: string | null = null;
   statuses = ['All', 'Placed', 'Confirmed', 'Preparing', 'Ready', 'PickedUp', 'Delivered', 'Cancelled'];
 
   private readonly statusMap: Record<number, string> = {
     0: 'Placed', 1: 'Confirmed', 2: 'Preparing', 3: 'Ready', 4: 'PickedUp', 5: 'Delivered', 6: 'Cancelled', 7: 'Rejected'
   };
 
-  constructor(private orderSvc: OrderService, private route: ActivatedRoute) {}
+  constructor(private orderSvc: OrderService, private paymentSvc: PaymentService, private route: ActivatedRoute) {}
 
   ngOnInit() {
     // Check if a status filter was passed via query param
@@ -157,6 +165,22 @@ export class AdminOrdersComponent implements OnInit {
     this.orderSvc.updateStatus(o.id, 5).subscribe(() => {
       o.status = 5 as any;
       this.applyFilter();
+    });
+  }
+
+  refund(o: OrderDto) {
+    if (!confirm(`Issue a refund of ₹${o.totalAmount} for order #${o.id.slice(0, 8).toUpperCase()}?`)) return;
+    this.refundingId = o.id;
+    this.paymentSvc.refund(o.id).subscribe({
+      next: () => {
+        this.refundingId = null;
+        alert('Refund processed successfully.');
+      },
+      error: (err) => {
+        this.refundingId = null;
+        const msg = err.error?.message || err.error || 'Refund failed.';
+        alert(`${msg}`);
+      }
     });
   }
 }

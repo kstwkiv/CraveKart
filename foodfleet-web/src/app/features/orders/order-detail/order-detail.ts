@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { OrderService } from '../../../core/services/order.service';
 import { DeliveryService } from '../../../core/services/delivery.service';
 import { RestaurantService } from '../../../core/services/restaurant.service';
+import { PaymentService, PaymentDto } from '../../../core/services/payment.service';
 import { OrderDto } from '../../../core/models/order.models';
 import { DeliveryDto } from '../../../core/models/delivery.models';
 import { RestaurantDto } from '../../../core/models/restaurant.models';
@@ -143,7 +144,44 @@ import { environment } from '../../../../environments/environment';
             </div>
           </div>
 
-          <!-- Agent location -->
+          <!-- Payment status card -->
+          <div class="card payment-card" *ngIf="payment">
+            <div class="card-title">💳 Payment</div>
+            <div class="payment-body">
+              <div class="payment-status-row">
+                <span class="payment-status-badge" [class]="payment.status.toLowerCase()">
+                  {{ paymentStatusIcon }} {{ payment.status }}
+                </span>
+                <span class="payment-amount">₹{{ payment.amount | number:'1.2-2' }}</span>
+              </div>
+              <div class="payment-meta">
+                <div class="payment-meta-row">
+                  <span class="pm-label">Method</span>
+                  <span class="pm-val">{{ formatPayment(payment.paymentMethod) }}</span>
+                </div>
+                <div class="payment-meta-row">
+                  <span class="pm-label">Currency</span>
+                  <span class="pm-val">{{ payment.currency }}</span>
+                </div>
+                <div class="payment-meta-row">
+                  <span class="pm-label">Processed</span>
+                  <span class="pm-val">{{ payment.processedAt | date:'medium' }}</span>
+                </div>
+                <div class="payment-meta-row" *ngIf="payment.status === 'Refunded'">
+                  <span class="pm-label refund-label">Refund</span>
+                  <span class="pm-val refund-val">₹{{ payment.amount | number:'1.2-2' }} refunded</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card payment-card loading-payment" *ngIf="!payment && !paymentLoading">
+            <div class="card-title">💳 Payment</div>
+            <div class="payment-pending">
+              <span class="pending-icon">⏳</span>
+              <span>Payment processing...</span>
+            </div>
+          </div>
           <div class="card location-card" *ngIf="delivery?.currentLat && delivery?.currentLng">
             <div class="card-title">🛵 Agent Location</div>
             <div class="location-body">
@@ -251,6 +289,8 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
   order?: OrderDto;
   delivery?: DeliveryDto;
   restaurant?: RestaurantDto;
+  payment?: PaymentDto;
+  paymentLoading = true;
   loading = true;
   cancelling = false;
 
@@ -281,7 +321,8 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
     private location: Location,
     private orderSvc: OrderService,
     private deliverySvc: DeliveryService,
-    private restaurantSvc: RestaurantService
+    private restaurantSvc: RestaurantService,
+    private paymentSvc: PaymentService
   ) {}
 
   ngOnInit() {
@@ -292,6 +333,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
         this.order = o;
         this.loading = false;
         this.loadDelivery(this.orderId);
+        this.loadPayment(this.orderId);
         this.connectHub(this.orderId);
         this.pollInterval = setInterval(() => this.pollOrder(), 15_000);
         // Fetch full restaurant details for the about card
@@ -379,6 +421,20 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
 
   private loadDelivery(orderId: string) {
     this.deliverySvc.getByOrder(orderId).subscribe({ next: d => this.delivery = d, error: () => {} });
+  }
+
+  private loadPayment(orderId: string) {
+    this.paymentSvc.getByOrder(orderId).subscribe({
+      next: p => { this.payment = p; this.paymentLoading = false; },
+      error: () => { this.paymentLoading = false; }
+    });
+  }
+
+  get paymentStatusIcon(): string {
+    const icons: Record<string, string> = {
+      Confirmed: '✅', Pending: '⏳', Failed: '❌', Refunded: '💸'
+    };
+    return icons[this.payment?.status ?? ''] ?? '💳';
   }
 
   private connectHub(orderId: string) {

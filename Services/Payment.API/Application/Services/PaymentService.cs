@@ -24,6 +24,7 @@ public class PaymentService : IPaymentService
         {
             OrderId = request.OrderId,
             CustomerId = request.CustomerId,
+            CustomerEmail = request.CustomerEmail,
             Amount = request.Amount,
             PaymentMethod = request.PaymentMethod,
             Status = PaymentStatus.Confirmed,
@@ -42,14 +43,72 @@ public class PaymentService : IPaymentService
             ConfirmedAt = IstClock.Now
         }, cancellationToken);
 
-        return new PaymentDto
-        {
-            Id = payment.Id,
-            OrderId = payment.OrderId,
-            Amount = payment.Amount,
-            Status = payment.Status.ToString(),
-            PaymentMethod = payment.PaymentMethod,
-            CreatedAt = payment.CreatedAt
-        };
+        return ToDto(payment);
     }
+
+    public async Task<PaymentDto?> GetByOrderIdAsync(Guid orderId, CancellationToken cancellationToken = default)
+    {
+        var payment = await _unitOfWork.Payments.GetByOrderIdAsync(orderId);
+        return payment == null ? null : ToDto(payment);
+    }
+
+    public async Task<List<PaymentDto>> GetByCustomerIdAsync(Guid customerId, CancellationToken cancellationToken = default)
+    {
+        var payments = await _unitOfWork.Payments.GetByCustomerIdAsync(customerId);
+        return payments.Select(ToDto).ToList();
+    }
+
+    public async Task<List<PaymentDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        var payments = await _unitOfWork.Payments.GetAllAsync();
+        return payments.Select(ToDto).ToList();
+    }
+
+    public async Task<PaymentDto?> RefundAsync(Guid orderId, CancellationToken cancellationToken = default)
+    {
+        var payment = await _unitOfWork.Payments.GetByOrderIdAsync(orderId);
+
+        if (payment == null)
+        {
+            // Payment record missing (e.g. order placed before payment service was running).
+            // Return null so the controller can return a clear 404.
+            return null;
+        }
+
+        if (payment.Status == PaymentStatus.Refunded)
+            throw new InvalidOperationException("This payment has already been refunded.");
+
+        if (payment.Status == PaymentStatus.Failed)
+            throw new InvalidOperationException("Cannot refund a failed payment.");
+
+        payment.Status = PaymentStatus.Refunded;
+        payment.ProcessedAt = IstClock.Now;
+        _unitOfWork.Payments.Update(payment);
+        await _unitOfWork.SaveChangesAsync();
+
+        await _eventPublisher.PublishAsync(new PaymentRefundedEvent
+        {
+            PaymentId = payment.Id,
+            OrderId = payment.OrderId,
+            CustomerId = payment.CustomerId,
+            CustomerEmail = payment.CustomerEmail,
+            Amount = payment.Amount,
+            RefundedAt = IstClock.Now
+        }, cancellationToken);
+
+        return ToDto(payment);
+    }
+
+    private static PaymentDto ToDto(Domain.Entities.Payment p) => new()
+    {
+        Id = p.Id,
+        OrderId = p.OrderId,
+        CustomerId = p.CustomerId,
+        Amount = p.Amount,
+        Currency = p.Currency,
+        Status = p.Status.ToString(),
+        PaymentMethod = p.PaymentMethod,
+        CreatedAt = p.CreatedAt,
+        ProcessedAt = p.ProcessedAt
+    };
 }

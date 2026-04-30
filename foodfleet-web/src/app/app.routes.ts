@@ -21,6 +21,7 @@ export const routes: Routes = [
   // Customer
   { path: 'orders', loadComponent: () => import('./features/orders/order-history/order-history').then(m => m.OrderHistoryComponent), canActivate: [authGuard] },
   { path: 'orders/:id', loadComponent: () => import('./features/orders/order-detail/order-detail').then(m => m.OrderDetailComponent), canActivate: [authGuard] },
+  { path: 'payments', loadComponent: () => import('./features/payments/payment-history/payment-history').then(m => m.PaymentHistoryComponent), canActivate: [authGuard] },
 
   // Restaurant Owner
   { path: 'owner/dashboard', loadComponent: () => import('./features/owner/dashboard/owner-dashboard').then(m => m.OwnerDashboardComponent), canActivate: [roleGuard(['RestaurantOwner'])] },

@@ -31,6 +31,9 @@ public class Payment
     /// <summary>Gets or sets the payment method used (e.g., "Card", "CashOnDelivery").</summary>
     public string PaymentMethod { get; set; } = string.Empty;
 
+    /// <summary>Gets or sets the customer's email for refund notifications.</summary>
+    public string CustomerEmail { get; set; } = string.Empty;
+
     /// <summary>Gets or sets the IST timestamp when the payment record was created.</summary>
     public DateTime CreatedAt { get; set; } = IstClock.Now;
 

@@ -7,10 +7,6 @@ using Payment.API.Application.Interfaces;
 
 namespace Payment.API.Controllers;
 
-/// <summary>
-/// API controller for payment processing operations.
-/// Provides an endpoint for customers and admins to manually process payments.
-/// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize]
@@ -18,32 +14,60 @@ public class PaymentsController : ControllerBase
 {
     private readonly IPaymentService _paymentService;
 
-    /// <summary>
-    /// Initializes a new instance of <see cref="PaymentsController"/>.
-    /// </summary>
-    /// <param name="paymentService">The payment service for processing payments.</param>
-    public PaymentsController(IPaymentService paymentService)
-    {
-        _paymentService = paymentService;
-    }
+    public PaymentsController(IPaymentService paymentService) => _paymentService = paymentService;
 
-    /// <summary>
-    /// Processes a payment for an order. The customer ID is extracted from the JWT token.
-    /// </summary>
-    /// <param name="request">The payment request containing order ID, amount, and payment method.</param>
-    /// <returns>The created payment DTO.</returns>
     [HttpPost("process")]
     [Authorize(Roles = "Customer,Admin")]
     public async Task<IActionResult> Process([FromBody] ProcessPaymentRequest request)
     {
         var customerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
         var result = await _paymentService.ProcessAsync(new ProcessPaymentCommand(
             request.OrderId,
             customerId,
+            request.CustomerEmail ?? string.Empty,
             request.Amount,
             request.PaymentMethod));
-
         return Ok(result);
+    }
+
+    [HttpGet("order/{orderId}")]
+    public async Task<IActionResult> GetByOrder(Guid orderId)
+    {
+        var result = await _paymentService.GetByOrderIdAsync(orderId);
+        if (result == null) return NotFound();
+        return Ok(result);
+    }
+
+    [HttpGet("customer/{customerId}")]
+    [Authorize(Roles = "Customer,Admin")]
+    public async Task<IActionResult> GetByCustomer(Guid customerId)
+    {
+        var result = await _paymentService.GetByCustomerIdAsync(customerId);
+        return Ok(result);
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await _paymentService.GetAllAsync();
+        return Ok(result);
+    }
+
+    [HttpPost("order/{orderId}/refund")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Refund(Guid orderId)
+    {
+        try
+        {
+            var result = await _paymentService.RefundAsync(orderId);
+            if (result == null)
+                return NotFound(new { message = "No payment record found for this order. The order may have been placed before the payment service was active." });
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }

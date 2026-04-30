@@ -31,6 +31,7 @@ public static class DependencyInjection
             x.AddConsumer<OrderStatusChangedConsumer>();
             x.AddConsumer<OrderCancelledConsumer>();
             x.AddConsumer<PaymentFailedConsumer>();
+            x.AddConsumer<PaymentRefundedConsumer>();
             x.AddConsumer<DeliveryCompletedConsumer>();
             x.AddConsumer<RestaurantApprovedConsumer>();
             x.AddConsumer<RestaurantRejectedConsumer>();

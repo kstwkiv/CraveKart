@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddRabbitMqMessaging(configuration, x =>
         {
             x.AddConsumer<OrderPlacedConsumer>();
+            x.AddConsumer<OrderCancelledConsumer>();
         });
 
         return services;

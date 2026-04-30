@@ -13,5 +13,6 @@ namespace Payment.API.Application.Commands;
 public record ProcessPaymentCommand(
     Guid OrderId,
     Guid CustomerId,
+    string CustomerEmail,
     decimal Amount,
     string PaymentMethod);

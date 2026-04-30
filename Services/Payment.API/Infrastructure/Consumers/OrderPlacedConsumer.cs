@@ -37,6 +37,7 @@ public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
         await _paymentService.ProcessAsync(new ProcessPaymentCommand(
             context.Message.OrderId,
             context.Message.CustomerId,
+            context.Message.CustomerEmail,
             context.Message.TotalAmount,
             context.Message.PaymentMethod),
             context.CancellationToken);

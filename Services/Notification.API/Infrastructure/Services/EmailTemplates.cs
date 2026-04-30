@@ -111,6 +111,19 @@ public static class EmailTemplates
             {Cta("Retry Payment", "http://localhost:4200/orders")}
         """);
 
+    /// <summary>Payment refunded notification.</summary>
+    public static string PaymentRefunded(string orderId, decimal amount, string refundedAt) => Wrap(
+        headerEmoji: "💸",
+        headerBg: "linear-gradient(135deg,#1e40af,#3b82f6)",
+        title: "Refund Processed",
+        subtitle: $"Order #{orderId[..Math.Min(8, orderId.Length)].ToUpper()}",
+        body: $"""
+            <p style="{BodyText}">Your refund has been successfully processed.</p>
+            {InfoBox("💰", $"<strong>Refund Amount:</strong> ₹{amount:F2}<br/><strong>Processed At:</strong> {refundedAt} IST")}
+            <p style="{BodyText}">The amount will be credited to your original payment method within 5–7 business days.</p>
+            {Cta("View Orders", "http://localhost:4200/orders")}
+        """);
+
     /// <summary>Restaurant approved notification.</summary>
     public static string RestaurantApproved(string restaurantName, string approvedAt) => Wrap(
         headerEmoji: "✅",
