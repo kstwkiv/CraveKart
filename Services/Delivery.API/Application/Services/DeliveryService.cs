@@ -39,7 +39,7 @@ public class DeliveryService : IDeliveryService
             CustomerId = request.CustomerId,
             CustomerEmail = request.CustomerEmail,
             Status = "Assigned",
-            AssignedAt = DateTime.UtcNow
+            AssignedAt = IstClock.Now
         };
 
         await _unitOfWork.Deliveries.AddAsync(delivery);
@@ -52,7 +52,7 @@ public class DeliveryService : IDeliveryService
             AgentName = agent.FullName,
             CustomerId = request.CustomerId,
             CustomerEmail = request.CustomerEmail,
-            AssignedAt = DateTime.UtcNow
+            AssignedAt = IstClock.Now
         }, cancellationToken);
 
         return ToDto(delivery);
@@ -73,7 +73,7 @@ public class DeliveryService : IDeliveryService
             CustomerId = Guid.Empty,   // not needed for self-pickup flow
             CustomerEmail = string.Empty,
             Status = "Assigned",
-            AssignedAt = DateTime.UtcNow
+            AssignedAt = IstClock.Now
         };
 
         await _unitOfWork.Deliveries.AddAsync(delivery);
@@ -105,7 +105,7 @@ public class DeliveryService : IDeliveryService
         if (delivery == null) return false;
 
         delivery.Status = "Delivered";
-        delivery.CompletedAt = DateTime.UtcNow;
+        delivery.CompletedAt = IstClock.Now;
         _unitOfWork.Deliveries.Update(delivery);
 
         var agent = delivery.Agent;

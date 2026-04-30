@@ -6,6 +6,11 @@ using Order.API.Domain.Enums;
 
 namespace Order.API.Controllers;
 
+/// <summary>
+/// API controller for admin-level order management operations.
+/// Provides endpoints for listing all orders, viewing statistics, and exporting CSV reports.
+/// Accessible by Admin role only.
+/// </summary>
 [ApiController]
 [Route("api/v1/admin/orders")]
 [Authorize(Roles = "Admin")]
@@ -13,11 +18,20 @@ public class AdminOrdersController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AdminOrdersController"/>.
+    /// </summary>
+    /// <param name="unitOfWork">The unit of work for data access.</param>
     public AdminOrdersController(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
 
+    /// <summary>
+    /// Retrieves all orders, optionally filtered by status.
+    /// </summary>
+    /// <param name="status">Optional status filter (e.g., "Placed", "Delivered").</param>
+    /// <returns>A list of order DTOs.</returns>
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? status)
     {
@@ -31,6 +45,10 @@ public class AdminOrdersController : ControllerBase
         return Ok(all.Select(ToDto));
     }
 
+    /// <summary>
+    /// Retrieves aggregate order statistics including counts by status and total revenue.
+    /// </summary>
+    /// <returns>An object containing order counts per status and total delivered revenue.</returns>
     [HttpGet("stats")]
     public async Task<IActionResult> GetStats()
     {
@@ -52,6 +70,13 @@ public class AdminOrdersController : ControllerBase
     }
 
     // GET /api/v1/admin/orders/reports/csv
+    /// <summary>
+    /// Exports orders as a CSV file, optionally filtered by status and date range.
+    /// </summary>
+    /// <param name="status">Optional status filter.</param>
+    /// <param name="from">Optional start date filter (inclusive).</param>
+    /// <param name="to">Optional end date filter (inclusive).</param>
+    /// <returns>A CSV file download containing the filtered order data.</returns>
     [HttpGet("reports/csv")]
     public async Task<IActionResult> ExportCsv([FromQuery] string? status, [FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
@@ -70,7 +95,7 @@ public class AdminOrdersController : ControllerBase
             sb.AppendLine($"{o.Id},{o.CustomerId},{o.RestaurantId},{o.Status},{o.TotalAmount},{o.PaymentMethod},{o.CreatedAt:yyyy-MM-dd HH:mm:ss}");
 
         var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
-        return File(bytes, "text/csv", $"orders_{DateTime.UtcNow:yyyyMMdd}.csv");
+        return File(bytes, "text/csv", $"orders_{IstClock.Now:yyyyMMdd}.csv");
     }
 
     private static OrderDto ToDto(Domain.Entities.Order o) => new()

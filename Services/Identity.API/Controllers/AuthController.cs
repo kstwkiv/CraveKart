@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Identity.API.Controllers;
 
+/// <summary>
+/// API controller for authentication operations including registration, login,
+/// password reset, token refresh, and logout.
+/// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
 public class AuthController : ControllerBase
@@ -15,6 +19,13 @@ public class AuthController : ControllerBase
     private readonly IPasswordService _passwordService;
     private readonly IEmailService _emailService;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AuthController"/>.
+    /// </summary>
+    /// <param name="authService">The authentication service for register and login operations.</param>
+    /// <param name="unitOfWork">The unit of work for direct user data access.</param>
+    /// <param name="passwordService">The password service for hashing and verification.</param>
+    /// <param name="emailService">The email service for sending OTP emails.</param>
     public AuthController(
         IAuthService authService,
         IUnitOfWork unitOfWork,
@@ -27,6 +38,11 @@ public class AuthController : ControllerBase
         _emailService = emailService;
     }
 
+    /// <summary>
+    /// Registers a new user account and returns an access token.
+    /// </summary>
+    /// <param name="request">The registration request containing user details.</param>
+    /// <returns>An <see cref="AuthResponse"/> with user info and access token.</returns>
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
     {
@@ -75,8 +91,8 @@ public class AuthController : ControllerBase
 
         var otp = new Random().Next(100000, 999999).ToString();
         user.PasswordResetOtp = _passwordService.HashPassword(otp);
-        user.PasswordResetOtpExpiry = DateTime.UtcNow.AddMinutes(15);
-        user.UpdatedAt = DateTime.UtcNow;
+        user.PasswordResetOtpExpiry = IstClock.Now.AddMinutes(15);
+        user.UpdatedAt = IstClock.Now;
         _unitOfWork.Users.Update(user);
         await _unitOfWork.SaveChangesAsync();
 
@@ -96,7 +112,7 @@ public class AuthController : ControllerBase
         if (user == null || user.PasswordResetOtp == null || user.PasswordResetOtpExpiry == null)
             return BadRequest("Invalid or expired OTP.");
 
-        if (user.PasswordResetOtpExpiry < DateTime.UtcNow)
+        if (user.PasswordResetOtpExpiry < IstClock.Now)
             return BadRequest("OTP has expired. Please request a new one.");
 
         if (!_passwordService.VerifyPassword(request.Otp, user.PasswordResetOtp))
@@ -105,7 +121,7 @@ public class AuthController : ControllerBase
         user.PasswordHash = _passwordService.HashPassword(request.NewPassword);
         user.PasswordResetOtp = null;
         user.PasswordResetOtpExpiry = null;
-        user.UpdatedAt = DateTime.UtcNow;
+        user.UpdatedAt = IstClock.Now;
         _unitOfWork.Users.Update(user);
         await _unitOfWork.SaveChangesAsync();
 
@@ -120,7 +136,7 @@ public class AuthController : ControllerBase
         if (user == null || user.RefreshTokenHash == null || user.RefreshTokenExpiry == null)
             return Unauthorized("Invalid refresh token.");
 
-        if (user.RefreshTokenExpiry < DateTime.UtcNow)
+        if (user.RefreshTokenExpiry < IstClock.Now)
             return Unauthorized("Refresh token has expired. Please log in again.");
 
         if (!BCrypt.Net.BCrypt.Verify(request.RefreshToken, user.RefreshTokenHash))
@@ -131,8 +147,8 @@ public class AuthController : ControllerBase
         var newRefreshToken = jwtService.GenerateRefreshToken();
 
         user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(newRefreshToken);
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-        user.UpdatedAt = DateTime.UtcNow;
+        user.RefreshTokenExpiry = IstClock.Now.AddDays(7);
+        user.UpdatedAt = IstClock.Now;
         _unitOfWork.Users.Update(user);
         await _unitOfWork.SaveChangesAsync();
 
@@ -149,7 +165,7 @@ public class AuthController : ControllerBase
         {
             user.RefreshTokenHash = null;
             user.RefreshTokenExpiry = null;
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedAt = IstClock.Now;
             _unitOfWork.Users.Update(user);
             await _unitOfWork.SaveChangesAsync();
         }

@@ -3,15 +3,31 @@ using Restaurant.API.Domain.Entities;
 
 namespace Restaurant.API.Infrastructure.Persistence;
 
+/// <summary>
+/// Entity Framework Core database context for the Restaurant bounded context.
+/// Manages <see cref="Restaurant"/>, <see cref="MenuCategory"/>, <see cref="MenuItem"/>, and <see cref="Review"/> entities.
+/// </summary>
 public class RestaurantDbContext : DbContext
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="RestaurantDbContext"/> with the specified options.
+    /// </summary>
+    /// <param name="options">The options to configure the context.</param>
     public RestaurantDbContext(DbContextOptions<RestaurantDbContext> options) : base(options) { }
 
+    /// <summary>Gets the DbSet for restaurant records.</summary>
     public DbSet<Domain.Entities.Restaurant> Restaurants => Set<Domain.Entities.Restaurant>();
+
+    /// <summary>Gets the DbSet for menu category records.</summary>
     public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
+
+    /// <summary>Gets the DbSet for menu item records.</summary>
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
+
+    /// <summary>Gets the DbSet for customer review records.</summary>
     public DbSet<Review> Reviews => Set<Review>();
 
+    /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Domain.Entities.Restaurant>(e =>

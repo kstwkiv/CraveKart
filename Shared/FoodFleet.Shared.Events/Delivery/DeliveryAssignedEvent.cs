@@ -1,3 +1,5 @@
+using FoodFleet.Shared.Events;
+
 namespace FoodFleet.Shared.Events.Delivery;
 
 public class DeliveryAssignedEvent
@@ -7,5 +9,5 @@ public class DeliveryAssignedEvent
     public string AgentName { get; set; } = string.Empty;
     public Guid CustomerId { get; set; }
     public string CustomerEmail { get; set; } = string.Empty;
-    public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
+    public DateTime AssignedAt { get; set; } = IstClock.Now;
 }

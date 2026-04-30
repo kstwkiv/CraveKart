@@ -3,13 +3,25 @@ using Order.API.Domain.Entities;
 
 namespace Order.API.Infrastructure.Persistence;
 
+/// <summary>
+/// Entity Framework Core database context for the Order bounded context.
+/// Manages <see cref="Order"/> and <see cref="OrderItem"/> entities.
+/// </summary>
 public class OrderDbContext : DbContext
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="OrderDbContext"/> with the specified options.
+    /// </summary>
+    /// <param name="options">The options to configure the context.</param>
     public OrderDbContext(DbContextOptions<OrderDbContext> options) : base(options) { }
 
+    /// <summary>Gets the DbSet for order records.</summary>
     public DbSet<Domain.Entities.Order> Orders => Set<Domain.Entities.Order>();
+
+    /// <summary>Gets the DbSet for order item records.</summary>
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
+    /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Domain.Entities.Order>(e =>

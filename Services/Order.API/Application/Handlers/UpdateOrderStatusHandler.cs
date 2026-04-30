@@ -24,7 +24,7 @@ public class UpdateOrderStatusHandler : IRequestHandler<UpdateOrderStatusCommand
 
         var oldStatus = order.Status.ToString();
         order.Status = request.NewStatus;
-        order.UpdatedAt = DateTime.UtcNow;
+        order.UpdatedAt = IstClock.Now;
         _unitOfWork.Orders.Update(order);
         await _unitOfWork.SaveChangesAsync();
 
@@ -35,7 +35,7 @@ public class UpdateOrderStatusHandler : IRequestHandler<UpdateOrderStatusCommand
             CustomerEmail = order.CustomerEmail,
             OldStatus = oldStatus,
             NewStatus = request.NewStatus.ToString(),
-            ChangedAt = DateTime.UtcNow
+            ChangedAt = IstClock.Now
         }, cancellationToken);
 
         return true;

@@ -10,8 +10,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Delivery.API;
 
+/// <summary>
+/// Extension methods for registering Delivery API services with the dependency injection container.
+/// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Registers all Delivery API services including the database context, repositories,
+    /// application services, and RabbitMQ message consumers.
+    /// </summary>
+    /// <param name="services">The service collection to add services to.</param>
+    /// <param name="configuration">The application configuration for connection strings and settings.</param>
+    /// <returns>The updated <see cref="IServiceCollection"/>.</returns>
     public static IServiceCollection AddDeliveryServices(
         this IServiceCollection services,
         IConfiguration configuration)

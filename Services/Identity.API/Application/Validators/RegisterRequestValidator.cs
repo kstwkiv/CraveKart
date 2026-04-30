@@ -3,8 +3,13 @@ using Identity.API.Application.Commands;
 
 namespace Identity.API.Application.Validators;
 
+/// <summary>
+/// FluentValidation validator for <see cref="RegisterUserCommand"/>.
+/// Enforces name length, email format, password complexity, and mobile number requirements.
+/// </summary>
 public class RegisterRequestValidator : AbstractValidator<RegisterUserCommand>
 {
+    /// <summary>Initializes a new instance of <see cref="RegisterRequestValidator"/> with validation rules.</summary>
     public RegisterRequestValidator()
     {
         RuleFor(x => x.FullName).NotEmpty().MaximumLength(100);

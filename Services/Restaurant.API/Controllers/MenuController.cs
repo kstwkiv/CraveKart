@@ -7,6 +7,10 @@ using Restaurant.API.Domain.Entities;
 
 namespace Restaurant.API.Controllers;
 
+/// <summary>
+/// API controller for managing restaurant menus including categories and items.
+/// Provides endpoints for reading menus publicly and managing items for owners and admins.
+/// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize]
@@ -15,12 +19,22 @@ public class MenuController : ControllerBase
     private readonly IRestaurantService _restaurantService;
     private readonly IUnitOfWork _unitOfWork;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="MenuController"/>.
+    /// </summary>
+    /// <param name="restaurantService">The restaurant service for business logic.</param>
+    /// <param name="unitOfWork">The unit of work for data access.</param>
     public MenuController(IRestaurantService restaurantService, IUnitOfWork unitOfWork)
     {
         _restaurantService = restaurantService;
         _unitOfWork = unitOfWork;
     }
 
+    /// <summary>
+    /// Retrieves the full menu for a restaurant, grouped by category. Publicly accessible.
+    /// </summary>
+    /// <param name="restaurantId">The unique identifier of the restaurant.</param>
+    /// <returns>A list of menu category DTOs with their items.</returns>
     [HttpGet("restaurant/{restaurantId}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetMenu(Guid restaurantId)

@@ -64,7 +64,7 @@ public class OrderService : IOrderService
             TotalAmount = order.TotalAmount,
             PaymentMethod = order.PaymentMethod.ToString(),
             CustomerEmail = order.CustomerEmail,
-            PlacedAt = DateTime.UtcNow,
+            PlacedAt = IstClock.Now,
             Items = order.OrderItems.Select(i => new OrderPlacedItemEvent
             {
                 MenuItemName = i.MenuItemName,
@@ -98,7 +98,7 @@ public class OrderService : IOrderService
             throw new Exception("Order cannot be cancelled at this stage.");
 
         order.Status = OrderStatus.Cancelled;
-        order.UpdatedAt = DateTime.UtcNow;
+        order.UpdatedAt = IstClock.Now;
         _unitOfWork.Orders.Update(order);
         await _unitOfWork.SaveChangesAsync();
 
@@ -108,7 +108,7 @@ public class OrderService : IOrderService
             CustomerId = order.CustomerId,
             CustomerEmail = order.CustomerEmail,
             Reason = "Cancelled by customer",
-            CancelledAt = DateTime.UtcNow
+            CancelledAt = IstClock.Now
         }, cancellationToken);
 
         return true;
@@ -133,7 +133,7 @@ public class OrderService : IOrderService
 
         var oldStatus = order.Status.ToString();
         order.Status = request.NewStatus;
-        order.UpdatedAt = DateTime.UtcNow;
+        order.UpdatedAt = IstClock.Now;
         _unitOfWork.Orders.Update(order);
         await _unitOfWork.SaveChangesAsync();
 
@@ -144,7 +144,7 @@ public class OrderService : IOrderService
             CustomerEmail = order.CustomerEmail,
             OldStatus = oldStatus,
             NewStatus = request.NewStatus.ToString(),
-            ChangedAt = DateTime.UtcNow
+            ChangedAt = IstClock.Now
         }, cancellationToken);
 
         return true;

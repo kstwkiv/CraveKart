@@ -21,7 +21,7 @@ public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
 
         await _emailService.SendAsync(
             msg.CustomerEmail,
-            $"✅ Order #{msg.OrderId.ToString()[..8].ToUpper()} Placed Successfully!",
+            $"Order #{msg.OrderId.ToString()[..8].ToUpper()} Placed Successfully!",
             body);
     }
 
@@ -86,7 +86,7 @@ public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
                                   </td>
                                   <td align="right">
                                     <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Placed On</div>
-                                    <div style="font-size:14px;font-weight:600;color:#333;margin-top:2px;">{msg.PlacedAt:dd MMM yyyy, hh:mm tt} UTC</div>
+                                    <div style="font-size:14px;font-weight:600;color:#333;margin-top:2px;">{msg.PlacedAt:dd MMM yyyy, hh:mm tt} IST</div>
                                   </td>
                                 </tr>
                               </table>
@@ -170,7 +170,7 @@ public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
                     <!-- Bottom bar -->
                     <tr>
                       <td style="background:#f8f8f8;padding:16px 40px;text-align:center;border-top:1px solid #eee;">
-                        <p style="margin:0;font-size:12px;color:#aaa;">© {DateTime.UtcNow.Year} CraveKart. All rights reserved.</p>
+                        <p style="margin:0;font-size:12px;color:#aaa;">© {IstClock.Now.Year} CraveKart. All rights reserved.</p>
                       </td>
                     </tr>
 

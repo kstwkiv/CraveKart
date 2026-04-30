@@ -64,7 +64,7 @@ public static class EmailTemplates
                 <tr>
                   <td style="padding:24px 40px;text-align:center;">
                     <p style="margin:0 0 6px;font-size:13px;color:#6b7280;">You're receiving this because you have an account on <strong style="color:{Primary};">{Brand}</strong>.</p>
-                    <p style="margin:0;font-size:12px;color:#9ca3af;">© {DateTime.UtcNow.Year} {Brand}. All rights reserved.</p>
+                    <p style="margin:0;font-size:12px;color:#9ca3af;">© {IstClock.Now.Year} {Brand}. All rights reserved.</p>
                   </td>
                 </tr>
               </table>

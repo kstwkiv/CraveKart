@@ -7,6 +7,10 @@ using Restaurant.API.Domain.Entities;
 
 namespace Restaurant.API.Controllers;
 
+/// <summary>
+/// API controller for managing customer reviews for restaurants.
+/// Provides endpoints for reading, creating, responding to, and deleting reviews.
+/// </summary>
 [ApiController]
 [Route("api/v1/reviews")]
 [Authorize]
@@ -14,12 +18,21 @@ public class ReviewsController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ReviewsController"/>.
+    /// </summary>
+    /// <param name="unitOfWork">The unit of work for data access.</param>
     public ReviewsController(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
 
     // GET /api/v1/reviews/restaurant/{restaurantId}
+    /// <summary>
+    /// Retrieves all reviews for a specific restaurant. Publicly accessible.
+    /// </summary>
+    /// <param name="restaurantId">The unique identifier of the restaurant.</param>
+    /// <returns>A list of review DTOs ordered by creation date descending.</returns>
     [HttpGet("restaurant/{restaurantId}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetByRestaurant(Guid restaurantId)

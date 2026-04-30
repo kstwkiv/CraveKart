@@ -8,6 +8,10 @@ using Order.API.Domain.Enums;
 
 namespace Order.API.Controllers;
 
+/// <summary>
+/// API controller for customer and restaurant-facing order operations.
+/// Provides endpoints for placing, retrieving, cancelling, and updating orders.
+/// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize]
@@ -15,11 +19,20 @@ public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="OrdersController"/>.
+    /// </summary>
+    /// <param name="orderService">The order service for business logic.</param>
     public OrdersController(IOrderService orderService)
     {
         _orderService = orderService;
     }
 
+    /// <summary>
+    /// Places a new food order for the authenticated customer.
+    /// </summary>
+    /// <param name="request">The order request containing restaurant, items, and delivery details.</param>
+    /// <returns>The created order DTO.</returns>
     [HttpPost]
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> PlaceOrder([FromBody] PlaceOrderRequest request)

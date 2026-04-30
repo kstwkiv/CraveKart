@@ -1,3 +1,5 @@
+using FoodFleet.Shared.Events;
+
 namespace FoodFleet.Shared.Events.Payments;
 
 public class PaymentConfirmedEvent
@@ -7,5 +9,5 @@ public class PaymentConfirmedEvent
     public Guid CustomerId { get; set; }
     public decimal Amount { get; set; }
     public string Currency { get; set; } = "INR";
-    public DateTime ConfirmedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ConfirmedAt { get; set; } = IstClock.Now;
 }

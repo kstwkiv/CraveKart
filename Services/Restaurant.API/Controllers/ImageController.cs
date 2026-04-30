@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Restaurant.API.Controllers;
 
+/// <summary>
+/// API controller for handling image uploads for restaurant and menu item assets.
+/// Stores uploaded images in the wwwroot/uploads directory and returns a public URL.
+/// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize]
@@ -10,11 +14,21 @@ public class ImageController : ControllerBase
 {
     private readonly IWebHostEnvironment _env;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ImageController"/>.
+    /// </summary>
+    /// <param name="env">The web host environment for resolving the web root path.</param>
     public ImageController(IWebHostEnvironment env)
     {
         _env = env;
     }
 
+    /// <summary>
+    /// Uploads an image file and returns its public URL.
+    /// Accepts jpg, jpeg, png, and webp formats up to 5MB.
+    /// </summary>
+    /// <param name="file">The image file to upload.</param>
+    /// <returns>The public URL of the uploaded image, or a 400 error on validation failure.</returns>
     [HttpPost("upload")]
     [Authorize(Roles = "RestaurantOwner,Admin")]
     public async Task<IActionResult> Upload(IFormFile file)

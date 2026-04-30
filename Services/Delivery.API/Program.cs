@@ -16,6 +16,8 @@ builder.Services.AddControllers()
     {
         o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        o.JsonSerializerOptions.Converters.Add(new FoodFleet.Shared.Messaging.IstDateTimeJsonConverter());
+        o.JsonSerializerOptions.Converters.Add(new FoodFleet.Shared.Messaging.IstNullableDateTimeJsonConverter());
     });
 builder.Services.AddEndpointsApiExplorer();
 

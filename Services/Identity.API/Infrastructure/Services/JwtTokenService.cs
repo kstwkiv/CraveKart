@@ -8,15 +8,24 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Identity.API.Infrastructure.Services;
 
+/// <summary>
+/// JWT-based implementation of <see cref="IJwtTokenService"/>.
+/// Generates signed access tokens and cryptographically random refresh tokens.
+/// </summary>
 public class JwtTokenService : IJwtTokenService
 {
     private readonly IConfiguration _configuration;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="JwtTokenService"/>.
+    /// </summary>
+    /// <param name="configuration">The application configuration containing JWT settings.</param>
     public JwtTokenService(IConfiguration configuration)
     {
         _configuration = configuration;
     }
 
+    /// <inheritdoc/>
     public string GenerateToken(User user)
     {
         var key = new SymmetricSecurityKey(
@@ -36,13 +45,14 @@ public class JwtTokenService : IJwtTokenService
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(
+            expires: IstClock.Now.AddMinutes(
                 int.Parse(_configuration["Jwt:ExpiryMinutes"]!)),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    /// <inheritdoc/>
     public string GenerateRefreshToken() =>
         Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(64));
 }

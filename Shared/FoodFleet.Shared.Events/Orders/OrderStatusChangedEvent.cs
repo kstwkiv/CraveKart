@@ -1,3 +1,5 @@
+using FoodFleet.Shared.Events;
+
 namespace FoodFleet.Shared.Events.Orders;
 
 public class OrderStatusChangedEvent
@@ -7,5 +9,5 @@ public class OrderStatusChangedEvent
     public string CustomerEmail { get; set; } = string.Empty;
     public string OldStatus { get; set; } = string.Empty;
     public string NewStatus { get; set; } = string.Empty;
-    public DateTime ChangedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ChangedAt { get; set; } = IstClock.Now;
 }

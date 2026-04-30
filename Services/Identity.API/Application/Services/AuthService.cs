@@ -49,15 +49,15 @@ public class AuthService : IAuthService
         await _unitOfWork.Users.AddAsync(user);
         await _unitOfWork.SaveChangesAsync();
 
-        // Fire-and-forget — don't block registration on event publishing
-        _ = _eventPublisher.PublishAsync(new UserRegisteredEvent
+        // Publish with a fresh token so the HTTP cancellation doesn't abort the event
+        await _eventPublisher.PublishAsync(new UserRegisteredEvent
         {
             UserId = user.Id,
             FullName = user.FullName,
             Email = user.Email,
             Role = user.Role.ToString(),
-            RegisteredAt = DateTime.UtcNow
-        }, cancellationToken);
+            RegisteredAt = IstClock.Now
+        }, CancellationToken.None);
 
         return new AuthResponse
         {
@@ -83,10 +83,18 @@ public class AuthService : IAuthService
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
         user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken);
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-        user.UpdatedAt = DateTime.UtcNow;
+        user.RefreshTokenExpiry = IstClock.Now.AddDays(7);
+        user.UpdatedAt = IstClock.Now;
         _unitOfWork.Users.Update(user);
         await _unitOfWork.SaveChangesAsync();
+
+        await _eventPublisher.PublishAsync(new UserLoggedInEvent
+        {
+            UserId = user.Id,
+            FullName = user.FullName,
+            Email = user.Email,
+            LoggedInAt = IstClock.Now
+        }, CancellationToken.None);
 
         return new AuthResponse
         {

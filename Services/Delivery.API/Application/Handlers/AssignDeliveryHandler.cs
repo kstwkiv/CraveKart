@@ -8,17 +8,33 @@ using MediatR;
 
 namespace Delivery.API.Application.Handlers;
 
+/// <summary>
+/// MediatR handler that processes <see cref="AssignDeliveryCommand"/> requests.
+/// Finds an available agent, creates a delivery record, and publishes a <see cref="DeliveryAssignedEvent"/>.
+/// </summary>
 public class AssignDeliveryHandler : IRequestHandler<AssignDeliveryCommand, DeliveryDto>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEventPublisher _eventPublisher;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AssignDeliveryHandler"/>.
+    /// </summary>
+    /// <param name="unitOfWork">The unit of work for data access.</param>
+    /// <param name="eventPublisher">The event publisher for raising domain events.</param>
     public AssignDeliveryHandler(IUnitOfWork unitOfWork, IEventPublisher eventPublisher)
     {
         _unitOfWork = unitOfWork;
         _eventPublisher = eventPublisher;
     }
 
+    /// <summary>
+    /// Handles the assignment of an available delivery agent to the specified order.
+    /// </summary>
+    /// <param name="request">The command containing order and customer details.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A <see cref="DeliveryDto"/> representing the created delivery assignment.</returns>
+    /// <exception cref="Exception">Thrown when no available delivery agents are found.</exception>
     public async Task<DeliveryDto> Handle(AssignDeliveryCommand request, CancellationToken cancellationToken)
     {
         var agent = await _unitOfWork.Deliveries.GetAvailableAgentAsync()
@@ -34,7 +50,7 @@ public class AssignDeliveryHandler : IRequestHandler<AssignDeliveryCommand, Deli
             CustomerId = request.CustomerId,
             CustomerEmail = request.CustomerEmail,
             Status = "Assigned",
-            AssignedAt = DateTime.UtcNow
+            AssignedAt = IstClock.Now
         };
 
         await _unitOfWork.Deliveries.AddAsync(delivery);
@@ -47,7 +63,7 @@ public class AssignDeliveryHandler : IRequestHandler<AssignDeliveryCommand, Deli
             AgentName = agent.FullName,
             CustomerId = request.CustomerId,
             CustomerEmail = request.CustomerEmail,
-            AssignedAt = DateTime.UtcNow
+            AssignedAt = IstClock.Now
         }, cancellationToken);
 
         return new DeliveryDto

@@ -7,6 +7,10 @@ using Restaurant.API.Application.Interfaces;
 
 namespace Restaurant.API.Controllers;
 
+/// <summary>
+/// API controller for public and owner-facing restaurant operations.
+/// Provides endpoints for browsing, creating, and managing restaurant listings.
+/// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
 public class RestaurantsController : ControllerBase
@@ -14,6 +18,11 @@ public class RestaurantsController : ControllerBase
     private readonly IRestaurantService _restaurantService;
     private readonly IUnitOfWork _unitOfWork;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="RestaurantsController"/>.
+    /// </summary>
+    /// <param name="restaurantService">The restaurant service for business logic.</param>
+    /// <param name="unitOfWork">The unit of work for data access.</param>
     public RestaurantsController(IRestaurantService restaurantService, IUnitOfWork unitOfWork)
     {
         _restaurantService = restaurantService;
@@ -21,6 +30,11 @@ public class RestaurantsController : ControllerBase
     }
 
     // GET /api/v1/restaurants  — public
+    /// <summary>
+    /// Retrieves all active restaurants, optionally filtered by a search term. Publicly accessible.
+    /// </summary>
+    /// <param name="search">Optional search term to filter by name or cuisine type.</param>
+    /// <returns>A list of active restaurant DTOs.</returns>
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetAll([FromQuery] string? search)
@@ -124,14 +138,32 @@ public class RestaurantsController : ControllerBase
     }
 }
 
+/// <summary>
+/// Request DTO for updating an existing restaurant's details.
+/// </summary>
 public class UpdateRestaurantRequest
 {
+    /// <summary>Gets or sets the new display name of the restaurant.</summary>
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the new description of the restaurant.</summary>
     public string Description { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the new physical address of the restaurant.</summary>
     public string Address { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the updated comma-separated cuisine types.</summary>
     public string CuisineTypes { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the updated operating hours description.</summary>
     public string OperatingHours { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the updated minimum order amount.</summary>
     public double MinimumOrderAmount { get; set; }
+
+    /// <summary>Gets or sets the updated estimated delivery time in minutes.</summary>
     public int EstimatedDeliveryMinutes { get; set; }
+
+    /// <summary>Gets or sets the optional updated URL of the restaurant's logo image.</summary>
     public string? LogoUrl { get; set; }
 }

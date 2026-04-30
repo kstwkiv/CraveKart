@@ -27,7 +27,7 @@ public class CancelOrderHandler : IRequestHandler<CancelOrderCommand, bool>
             throw new Exception("Order cannot be cancelled at this stage.");
 
         order.Status = OrderStatus.Cancelled;
-        order.UpdatedAt = DateTime.UtcNow;
+        order.UpdatedAt = IstClock.Now;
         _unitOfWork.Orders.Update(order);
         await _unitOfWork.SaveChangesAsync();
 
@@ -37,7 +37,7 @@ public class CancelOrderHandler : IRequestHandler<CancelOrderCommand, bool>
             CustomerId = order.CustomerId,
             CustomerEmail = order.CustomerEmail,
             Reason = "Cancelled by customer",
-            CancelledAt = DateTime.UtcNow
+            CancelledAt = IstClock.Now
         }, cancellationToken);
 
         return true;

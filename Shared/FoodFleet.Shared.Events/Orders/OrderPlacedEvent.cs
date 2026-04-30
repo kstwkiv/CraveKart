@@ -1,3 +1,5 @@
+using FoodFleet.Shared.Events;
+
 namespace FoodFleet.Shared.Events.Orders;
 
 public class OrderPlacedEvent
@@ -12,7 +14,7 @@ public class OrderPlacedEvent
     public decimal TotalAmount { get; set; }
     public string PaymentMethod { get; set; } = string.Empty;
     public string CustomerEmail { get; set; } = string.Empty;
-    public DateTime PlacedAt { get; set; } = DateTime.UtcNow;
+    public DateTime PlacedAt { get; set; } = IstClock.Now;
     public List<OrderPlacedItemEvent> Items { get; set; } = new();
 }
 

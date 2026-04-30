@@ -37,7 +37,7 @@ public static class EmailTemplates
         body: $"""
             <p style="{BodyText}">Hi <strong>{fullName}</strong>,</p>
             <p style="{BodyText}">A new sign-in was detected on your {Brand} account.</p>
-            {InfoBox("🕐", $"<strong>Time:</strong> {loggedInAt} UTC")}
+            {InfoBox("🕐", $"<strong>Time:</strong> {loggedInAt} IST")}
             <p style="{BodyText}">If this was you, no action is needed. If you don't recognise this activity, please reset your password immediately.</p>
             {Cta("Reset My Password", "http://localhost:4200/auth/forgot-password", danger: true)}
         """);
@@ -249,7 +249,7 @@ public static class EmailTemplates
                 <tr>
                   <td style="padding:24px 40px;text-align:center;">
                     <p style="margin:0 0 6px;font-size:13px;color:#6b7280;">You're receiving this email because you have an account on <strong style="color:{Primary};">{Brand}</strong>.</p>
-                    <p style="margin:0;font-size:12px;color:#9ca3af;">© {DateTime.UtcNow.Year} {Brand}. All rights reserved.</p>
+                    <p style="margin:0;font-size:12px;color:#9ca3af;">© {IstClock.Now.Year} {Brand}. All rights reserved.</p>
                   </td>
                 </tr>
 

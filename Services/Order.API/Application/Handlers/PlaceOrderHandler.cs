@@ -59,7 +59,7 @@ public class PlaceOrderHandler : IRequestHandler<PlaceOrderCommand, OrderDto>
             TotalAmount = order.TotalAmount,
             PaymentMethod = order.PaymentMethod.ToString(),
             CustomerEmail = order.CustomerEmail,
-            PlacedAt = DateTime.UtcNow
+            PlacedAt = IstClock.Now
         }, cancellationToken);
 
         return new OrderDto

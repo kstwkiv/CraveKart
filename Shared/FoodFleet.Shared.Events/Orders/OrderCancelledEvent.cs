@@ -1,3 +1,5 @@
+using FoodFleet.Shared.Events;
+
 namespace FoodFleet.Shared.Events.Orders;
 
 public class OrderCancelledEvent
@@ -6,5 +8,5 @@ public class OrderCancelledEvent
     public Guid CustomerId { get; set; }
     public string CustomerEmail { get; set; } = string.Empty;
     public string Reason { get; set; } = string.Empty;
-    public DateTime CancelledAt { get; set; } = DateTime.UtcNow;
+    public DateTime CancelledAt { get; set; } = IstClock.Now;
 }

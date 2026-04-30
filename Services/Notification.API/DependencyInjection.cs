@@ -7,8 +7,17 @@ using Notification.API.Infrastructure.Services;
 
 namespace Notification.API;
 
+/// <summary>
+/// Extension methods for registering Notification API services with the dependency injection container.
+/// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Registers all Notification API services including the email service and all RabbitMQ event consumers.
+    /// </summary>
+    /// <param name="services">The service collection to add services to.</param>
+    /// <param name="configuration">The application configuration for connection strings and settings.</param>
+    /// <returns>The updated <see cref="IServiceCollection"/>.</returns>
     public static IServiceCollection AddNotificationServices(
         this IServiceCollection services,
         IConfiguration configuration)

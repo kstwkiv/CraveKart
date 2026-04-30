@@ -69,7 +69,7 @@ public class RestaurantService : IRestaurantService
         restaurant.MinimumOrderAmount = request.MinimumOrderAmount;
         restaurant.EstimatedDeliveryMinutes = request.EstimatedDeliveryMinutes;
         if (request.LogoUrl != null) restaurant.LogoUrl = request.LogoUrl;
-        restaurant.UpdatedAt = DateTime.UtcNow;
+        restaurant.UpdatedAt = IstClock.Now;
 
         _unitOfWork.Restaurants.Update(restaurant);
         await _unitOfWork.SaveChangesAsync();
@@ -83,7 +83,7 @@ public class RestaurantService : IRestaurantService
         if (restaurant == null) return null;
 
         restaurant.IsOpen = !restaurant.IsOpen;
-        restaurant.UpdatedAt = DateTime.UtcNow;
+        restaurant.UpdatedAt = IstClock.Now;
         _unitOfWork.Restaurants.Update(restaurant);
         await _unitOfWork.SaveChangesAsync();
 

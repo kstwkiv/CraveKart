@@ -11,8 +11,18 @@ using Restaurant.API.Infrastructure.Persistence.Repositories;
 
 namespace Restaurant.API;
 
+/// <summary>
+/// Extension methods for registering Restaurant API services with the dependency injection container.
+/// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Registers all Restaurant API services including the database context, repositories,
+    /// application services, validators, and RabbitMQ message consumers.
+    /// </summary>
+    /// <param name="services">The service collection to add services to.</param>
+    /// <param name="configuration">The application configuration for connection strings and settings.</param>
+    /// <returns>The updated <see cref="IServiceCollection"/>.</returns>
     public static IServiceCollection AddRestaurantServices(
         this IServiceCollection services,
         IConfiguration configuration)

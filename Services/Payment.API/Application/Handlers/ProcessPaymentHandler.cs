@@ -28,7 +28,7 @@ public class ProcessPaymentHandler : IRequestHandler<ProcessPaymentCommand, Paym
             Amount = request.Amount,
             PaymentMethod = request.PaymentMethod,
             Status = PaymentStatus.Confirmed,
-            ProcessedAt = DateTime.UtcNow
+            ProcessedAt = IstClock.Now
         };
 
         await _unitOfWork.Payments.AddAsync(payment);
@@ -40,7 +40,7 @@ public class ProcessPaymentHandler : IRequestHandler<ProcessPaymentCommand, Paym
             OrderId = payment.OrderId,
             CustomerId = payment.CustomerId,
             Amount = payment.Amount,
-            ConfirmedAt = DateTime.UtcNow
+            ConfirmedAt = IstClock.Now
         }, cancellationToken);
 
         return new PaymentDto

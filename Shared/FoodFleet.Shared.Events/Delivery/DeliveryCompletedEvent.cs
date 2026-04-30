@@ -1,3 +1,5 @@
+using FoodFleet.Shared.Events;
+
 namespace FoodFleet.Shared.Events.Delivery;
 
 public class DeliveryCompletedEvent
@@ -6,5 +8,5 @@ public class DeliveryCompletedEvent
     public Guid AgentId { get; set; }
     public Guid CustomerId { get; set; }
     public string CustomerEmail { get; set; } = string.Empty;
-    public DateTime CompletedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CompletedAt { get; set; } = IstClock.Now;
 }
