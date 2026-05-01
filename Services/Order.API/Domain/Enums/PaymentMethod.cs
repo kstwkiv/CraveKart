@@ -5,9 +5,9 @@ namespace Order.API.Domain.Enums;
 /// </summary>
 public enum PaymentMethod
 {
-    /// <summary>Payment by credit or debit card (processed online).</summary>
-    Card,
+    /// <summary>Pay now via UPI — payment confirmed immediately.</summary>
+    UpiNow,
 
-    /// <summary>Payment in cash upon delivery.</summary>
+    /// <summary>Pay in cash when the order is delivered.</summary>
     CashOnDelivery
 }

@@ -198,7 +198,7 @@ interface CartItem { item: MenuItemDto; qty: number; }
                     <button class="btn-save-address"
                       (click)="saveNewAddress()"
                       [disabled]="!newAddressText.trim()">
-                      💾 Save &amp; use
+                      Save &amp; use
                     </button>
                     <button class="btn-cancel-address" (click)="toggleNewAddress()">
                       Cancel
@@ -213,18 +213,45 @@ interface CartItem { item: MenuItemDto; qty: number; }
                 </div>
               </div>
               <div class="payment-section">
-                <label>💳 Payment Method</label>
+                <label>How would you like to pay?</label>
                 <div class="payment-options">
+
+                  <!-- UPI Now -->
                   <label class="payment-option" [class.selected]="paymentMethod === 0">
                     <input type="radio" name="payment" [value]="0" [(ngModel)]="paymentMethod" />
-                    <span class="payment-icon">💳</span>
-                    <span class="payment-label">Card</span>
+                    <div class="po-icon-wrap upi">
+                      <span class="po-icon">📲</span>
+                    </div>
+                    <div class="po-body">
+                      <span class="po-title">Pay via UPI</span>
+                      <span class="po-sub">Instant · Secure · Confirmed now</span>
+                    </div>
+                    <span class="po-badge instant">Instant</span>
                   </label>
+
+                  <!-- Cash on Delivery -->
                   <label class="payment-option" [class.selected]="paymentMethod === 1">
                     <input type="radio" name="payment" [value]="1" [(ngModel)]="paymentMethod" />
-                    <span class="payment-icon">💵</span>
-                    <span class="payment-label">Cash on Delivery</span>
+                    <div class="po-icon-wrap cod">
+                      <span class="po-icon">💵</span>
+                    </div>
+                    <div class="po-body">
+                      <span class="po-title">Pay at Doorstep</span>
+                      <span class="po-sub">Cash on delivery</span>
+                    </div>
+                    <span class="po-badge cod">COD</span>
                   </label>
+
+                </div>
+
+                <!-- UPI info hint -->
+                <div class="upi-hint" *ngIf="paymentMethod === 0">
+                  <span class="upi-hint-icon">ℹ️</span>
+                  A UPI payment screen will appear after you place the order.
+                </div>
+                <div class="cod-hint" *ngIf="paymentMethod === 1">
+                  <span class="cod-hint-icon">🏠</span>
+                  Keep exact change ready. Payment confirmed after delivery.
                 </div>
               </div>
               <div class="error-msg" *ngIf="orderError">{{ orderError }}</div>
@@ -237,6 +264,75 @@ interface CartItem { item: MenuItemDto; qty: number; }
               <button class="btn-clear" (click)="cart = []">Clear cart</button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── UPI Payment Modal ── -->
+    <div class="upi-modal-backdrop" *ngIf="showUpiModal" (click)="skipUpiPayment()">
+      <div class="upi-modal" (click)="$event.stopPropagation()">
+        <div class="upi-modal-header">
+          <div class="upi-modal-icon">📲</div>
+          <h3>Complete UPI Payment</h3>
+          <p>₹{{ total | number:'1.2-2' }} · {{ restaurant?.name }}</p>
+        </div>
+
+        <div class="upi-modal-body">
+          <!-- Success screen -->
+          <div class="upi-success" *ngIf="upiSuccess">
+            <div class="upi-success-icon">✅</div>
+            <h4>Payment Confirmed!</h4>
+            <p>₹{{ total | number:'1.2-2' }} paid via UPI</p>
+            <p class="upi-success-sub">A confirmation email has been sent to you.</p>
+            <div class="upi-success-bar">
+              <div class="upi-success-fill"></div>
+            </div>
+            <p class="upi-success-redirect">Redirecting to your order...</p>
+          </div>
+
+          <!-- Payment form -->
+          <ng-container *ngIf="!upiSuccess">
+            <!-- QR code placeholder -->
+            <div class="upi-qr-wrap">
+              <div class="upi-qr">
+                <div class="upi-qr-inner">
+                  <span class="upi-qr-icon">⬛</span>
+                  <p class="upi-qr-label">Scan with any UPI app</p>
+                  <div class="upi-apps">
+                    <span class="upi-app">GPay</span>
+                    <span class="upi-app">PhonePe</span>
+                    <span class="upi-app">Paytm</span>
+                    <span class="upi-app">BHIM</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="upi-divider"><span>or enter UPI ID</span></div>
+
+            <div class="upi-input-wrap">
+              <input
+                type="text"
+                [(ngModel)]="upiId"
+                placeholder="yourname@upi"
+                class="upi-input"
+                [class.error]="upiError"
+                (keyup.enter)="confirmUpiPayment()" />
+              <span class="upi-input-icon">@</span>
+            </div>
+            <p class="upi-error" *ngIf="upiError">{{ upiError }}</p>
+
+            <button class="upi-pay-btn" (click)="confirmUpiPayment()" [disabled]="upiVerifying">
+              <span *ngIf="!upiVerifying">✅ Pay ₹{{ total | number:'1.2-2' }}</span>
+              <span *ngIf="upiVerifying" class="upi-verifying">
+                <span class="upi-spinner"></span> Verifying payment...
+              </span>
+            </button>
+
+            <button class="upi-skip-btn" (click)="skipUpiPayment()">
+              Pay later / Skip for now
+            </button>
+          </ng-container>
         </div>
       </div>
     </div>
@@ -379,6 +475,13 @@ export class RestaurantDetailComponent implements OnInit {
   get total() { return this.cart.reduce((s, c) => s + c.item.price * c.qty, 0); }
   get totalItems() { return this.cart.reduce((s, c) => s + c.qty, 0); }
 
+  showUpiModal = false;
+  upiId = '';
+  upiError = '';
+  upiVerifying = false;
+  upiSuccess = false;
+  private pendingOrderId = '';
+
   placeOrder() {
     if (!this.auth.isLoggedIn()) { this.router.navigate(['/auth/login']); return; }
     if (!this.deliveryAddress.trim()) { this.orderError = 'Please enter a delivery address'; return; }
@@ -394,10 +497,41 @@ export class RestaurantDetailComponent implements OnInit {
     }).subscribe({
       next: (order) => {
         this.addressSvc.saveUsed(this.deliveryAddress);
-        this.router.navigate(['/orders', order.id]);
+        this.placing = false;
+        if (this.paymentMethod === 0) {
+          // UPI — show payment modal before navigating
+          this.pendingOrderId = order.id;
+          this.showUpiModal = true;
+        } else {
+          // COD — go straight to order detail
+          this.router.navigate(['/orders', order.id]);
+        }
       },
       error: (err) => { this.orderError = err.error?.message || err.error || 'Failed to place order'; this.placing = false; }
     });
+  }
+
+  confirmUpiPayment() {
+    if (!this.upiId.trim()) { this.upiError = 'Please enter your UPI ID'; return; }
+    if (!this.upiId.includes('@')) { this.upiError = 'Enter a valid UPI ID (e.g. name@upi)'; return; }
+    this.upiVerifying = true;
+    this.upiError = '';
+    // Simulate UPI verification (1.5s), then show success screen (2s), then navigate
+    setTimeout(() => {
+      this.upiVerifying = false;
+      this.upiSuccess = true;
+      setTimeout(() => {
+        this.showUpiModal = false;
+        this.upiSuccess = false;
+        this.router.navigate(['/orders', this.pendingOrderId]);
+      }, 2200);
+    }, 1800);
+  }
+
+  skipUpiPayment() {
+    this.showUpiModal = false;
+    this.upiSuccess = false;
+    this.router.navigate(['/orders', this.pendingOrderId]);
   }
 }
 

@@ -9,94 +9,142 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterLink],
   template: `
-    <div class="page">
-      <div class="page-header">
-        <div>
-          <h2>Payment History</h2>
-          <p class="subtitle">All your transactions in one place</p>
-        </div>
-        <a routerLink="/orders" class="btn-back">← My Orders</a>
-      </div>
+    <div class="ph-page">
 
-      <!-- Summary cards -->
-      <div class="summary-grid" *ngIf="!loading && !error && payments.length > 0">
-        <div class="summary-card">
-          <div class="summary-icon">💳</div>
-          <div class="summary-body">
-            <div class="summary-val">{{ payments.length }}</div>
-            <div class="summary-label">Total Transactions</div>
+      <!-- ── Hero header ── -->
+      <div class="ph-hero">
+        <div class="ph-hero-inner">
+          <div class="ph-hero-left">
+            <div class="ph-hero-icon">💳</div>
+            <div>
+              <h1 class="ph-hero-title">Payment History</h1>
+              <p class="ph-hero-sub">Track every rupee you've spent on CraveKart</p>
+            </div>
           </div>
+          <a routerLink="/orders" class="ph-back-btn">
+            <span>←</span> My Orders
+          </a>
         </div>
-        <div class="summary-card">
-          <div class="summary-icon">✅</div>
-          <div class="summary-body">
-            <div class="summary-val">₹{{ confirmedTotal | number:'1.0-0' }}</div>
-            <div class="summary-label">Total Paid</div>
+      </div>
+
+      <div class="ph-content">
+
+        <!-- ── Loading ── -->
+        <div class="ph-state" *ngIf="loading">
+          <div class="ph-spinner"></div>
+          <p>Fetching your transactions...</p>
+        </div>
+
+        <!-- ── Error ── -->
+        <div class="ph-state ph-error" *ngIf="!loading && error">
+          <div class="ph-state-icon">⚠️</div>
+          <p>{{ error }}</p>
+          <button class="ph-retry-btn" (click)="ngOnInit()">Try again</button>
+        </div>
+
+        <!-- ── Empty ── -->
+        <div class="ph-state" *ngIf="!loading && !error && payments.length === 0">
+          <div class="ph-state-icon">🧾</div>
+          <p class="ph-empty-title">No transactions yet</p>
+          <p class="ph-empty-sub">Place your first order to see payments here</p>
+          <a routerLink="/restaurants" class="ph-cta-btn">🍴 Browse Restaurants</a>
+        </div>
+
+        <ng-container *ngIf="!loading && !error && payments.length > 0">
+
+          <!-- ── Stats strip ── -->
+          <div class="ph-stats">
+            <div class="ph-stat ph-stat-total">
+              <div class="ph-stat-icon-wrap">
+                <span class="ph-stat-icon">🧾</span>
+              </div>
+              <div class="ph-stat-body">
+                <div class="ph-stat-val">{{ payments.length }}</div>
+                <div class="ph-stat-label">Transactions</div>
+              </div>
+            </div>
+
+            <div class="ph-stat ph-stat-paid">
+              <div class="ph-stat-icon-wrap">
+                <span class="ph-stat-icon">✅</span>
+              </div>
+              <div class="ph-stat-body">
+                <div class="ph-stat-val">₹{{ confirmedTotal | number:'1.0-0' }}</div>
+                <div class="ph-stat-label">Total Paid</div>
+              </div>
+            </div>
+
+            <div class="ph-stat ph-stat-refunded">
+              <div class="ph-stat-icon-wrap">
+                <span class="ph-stat-icon">💸</span>
+              </div>
+              <div class="ph-stat-body">
+                <div class="ph-stat-val">₹{{ refundedTotal | number:'1.0-0' }}</div>
+                <div class="ph-stat-label">Refunded</div>
+              </div>
+            </div>
+
+            <div class="ph-stat ph-stat-avg">
+              <div class="ph-stat-icon-wrap">
+                <span class="ph-stat-icon">📊</span>
+              </div>
+              <div class="ph-stat-body">
+                <div class="ph-stat-val">₹{{ avgOrder | number:'1.0-0' }}</div>
+                <div class="ph-stat-label">Avg. Order</div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-icon">💸</div>
-          <div class="summary-body">
-            <div class="summary-val">₹{{ refundedTotal | number:'1.0-0' }}</div>
-            <div class="summary-label">Total Refunded</div>
+
+          <!-- ── Transaction list ── -->
+          <div class="ph-list-header">
+            <h2 class="ph-list-title">Recent Transactions</h2>
+            <span class="ph-list-count">{{ payments.length }} total</span>
           </div>
-        </div>
-      </div>
 
-      <!-- Loading -->
-      <div class="state-box" *ngIf="loading">
-        <div class="state-icon">⏳</div>
-        <p>Loading payment history...</p>
-      </div>
+          <div class="ph-list">
+            <div class="ph-item" *ngFor="let p of payments; let i = index"
+                 [style.animation-delay]="(i * 0.05) + 's'">
 
-      <!-- Error -->
-      <div class="state-box error-state" *ngIf="!loading && error">
-        <div class="state-icon">⚠️</div>
-        <p>{{ error }}</p>
-        <button (click)="ngOnInit()">Try again</button>
-      </div>
+              <!-- Left: status indicator + icon -->
+              <div class="ph-item-left">
+                <div class="ph-item-dot" [class]="p.status.toLowerCase()"></div>
+                <div class="ph-item-method-icon">
+                  {{ p.paymentMethod === 'CashOnDelivery' ? '💵' : '💳' }}
+                </div>
+              </div>
 
-      <!-- Empty -->
-      <div class="state-box" *ngIf="!loading && !error && payments.length === 0">
-        <div class="state-icon">💳</div>
-        <p>No payments yet.</p>
-        <a routerLink="/restaurants" class="btn-browse">Browse restaurants</a>
-      </div>
+              <!-- Center: order info -->
+              <div class="ph-item-center">
+                <div class="ph-item-order">
+                  Order <span class="ph-item-id">#{{ p.orderId | slice:0:8 | uppercase }}</span>
+                </div>
+                <div class="ph-item-meta">
+                  <span class="ph-item-method">
+                    {{ p.paymentMethod === 'CashOnDelivery' ? 'Cash on Delivery' : 'Card Payment' }}
+                  </span>
+                  <span class="ph-item-sep">·</span>
+                  <span class="ph-item-date">{{ p.createdAt | date:'d MMM yyyy, h:mm a' }}</span>
+                </div>
+              </div>
 
-      <!-- Table -->
-      <div class="table-wrap" *ngIf="!loading && !error && payments.length > 0">
-        <table>
-          <thead>
-            <tr>
-              <th>Order</th>
-              <th>Method</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Date</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let p of payments">
-              <td class="order-id">#{{ p.orderId | slice:0:8 | uppercase }}</td>
-              <td>
-                <span class="method-badge">
-                  {{ p.paymentMethod === 'CashOnDelivery' ? '💵 Cash' : '💳 Card' }}
+              <!-- Right: amount + status + action -->
+              <div class="ph-item-right">
+                <div class="ph-item-amount" [class.refunded]="p.status === 'Refunded'">
+                  {{ p.status === 'Refunded' ? '-' : '' }}₹{{ p.amount | number:'1.2-2' }}
+                </div>
+                <span class="ph-status-pill" [class]="p.status.toLowerCase()">
+                  <span class="ph-status-dot"></span>
+                  {{ p.status }}
                 </span>
-              </td>
-              <td class="amount">₹{{ p.amount | number:'1.2-2' }}</td>
-              <td>
-                <span class="status-badge" [class]="p.status.toLowerCase()">
-                  {{ statusIcon(p.status) }} {{ p.status }}
-                </span>
-              </td>
-              <td class="date">{{ p.createdAt | date:'mediumDate' }}</td>
-              <td>
-                <a [routerLink]="['/orders', p.orderId]" class="btn-view">View Order →</a>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <a [routerLink]="['/orders', p.orderId]" class="ph-view-btn">
+                  View →
+                </a>
+              </div>
+
+            </div>
+          </div>
+
+        </ng-container>
       </div>
     </div>
   `,
@@ -110,6 +158,8 @@ export class PaymentHistoryComponent implements OnInit {
   constructor(private paymentSvc: PaymentService, private auth: AuthService) {}
 
   ngOnInit() {
+    this.loading = true;
+    this.error = '';
     const userId = this.auth.currentUser()?.id;
     if (!userId) { this.loading = false; this.error = 'Not logged in.'; return; }
     this.paymentSvc.getByCustomer(userId).subscribe({
@@ -133,10 +183,8 @@ export class PaymentHistoryComponent implements OnInit {
       .reduce((s, p) => s + p.amount, 0);
   }
 
-  statusIcon(status: string): string {
-    const icons: Record<string, string> = {
-      Confirmed: '✅', Pending: '⏳', Failed: '❌', Refunded: '💸'
-    };
-    return icons[status] ?? '💳';
+  get avgOrder(): number {
+    if (!this.payments.length) return 0;
+    return this.payments.reduce((s, p) => s + p.amount, 0) / this.payments.length;
   }
 }

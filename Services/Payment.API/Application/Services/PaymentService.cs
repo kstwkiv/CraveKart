@@ -39,7 +39,53 @@ public class PaymentService : IPaymentService
             PaymentId = payment.Id,
             OrderId = payment.OrderId,
             CustomerId = payment.CustomerId,
+            CustomerEmail = payment.CustomerEmail,
             Amount = payment.Amount,
+            PaymentMethod = payment.PaymentMethod,
+            ConfirmedAt = IstClock.Now
+        }, cancellationToken);
+
+        return ToDto(payment);
+    }
+
+    public async Task<PaymentDto> CreatePendingAsync(ProcessPaymentCommand request, CancellationToken cancellationToken = default)
+    {
+        var payment = new Domain.Entities.Payment
+        {
+            OrderId = request.OrderId,
+            CustomerId = request.CustomerId,
+            CustomerEmail = request.CustomerEmail,
+            Amount = request.Amount,
+            PaymentMethod = request.PaymentMethod,
+            Status = PaymentStatus.Pending,
+            ProcessedAt = IstClock.Now
+        };
+
+        await _unitOfWork.Payments.AddAsync(payment);
+        await _unitOfWork.SaveChangesAsync();
+
+        return ToDto(payment);
+    }
+
+    public async Task<PaymentDto?> ConfirmCodAsync(Guid orderId, CancellationToken cancellationToken = default)
+    {
+        var payment = await _unitOfWork.Payments.GetByOrderIdAsync(orderId);
+        if (payment == null) return null;
+        if (payment.Status != PaymentStatus.Pending) return ToDto(payment);
+
+        payment.Status = PaymentStatus.Confirmed;
+        payment.ProcessedAt = IstClock.Now;
+        _unitOfWork.Payments.Update(payment);
+        await _unitOfWork.SaveChangesAsync();
+
+        await _eventPublisher.PublishAsync(new PaymentConfirmedEvent
+        {
+            PaymentId = payment.Id,
+            OrderId = payment.OrderId,
+            CustomerId = payment.CustomerId,
+            CustomerEmail = payment.CustomerEmail,
+            Amount = payment.Amount,
+            PaymentMethod = payment.PaymentMethod,
             ConfirmedAt = IstClock.Now
         }, cancellationToken);
 

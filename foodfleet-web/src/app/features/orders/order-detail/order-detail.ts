@@ -144,7 +144,7 @@ import { environment } from '../../../../environments/environment';
             </div>
           </div>
 
-          <!-- Payment status card -->
+          <!-- Payment status card — shows when record loaded -->
           <div class="card payment-card" *ngIf="payment">
             <div class="card-title">💳 Payment</div>
             <div class="payment-body">
@@ -175,11 +175,19 @@ import { environment } from '../../../../environments/environment';
             </div>
           </div>
 
-          <div class="card payment-card loading-payment" *ngIf="!payment && !paymentLoading">
+          <!-- No payment record yet — loading or polling -->
+          <div class="card payment-card" *ngIf="!payment">
             <div class="card-title">💳 Payment</div>
-            <div class="payment-pending">
-              <span class="pending-icon">⏳</span>
-              <span>Payment processing...</span>
+            <div class="payment-pending upi-confirming">
+              <span class="pending-spinner" [class.upi-color]="isUpiOrder"></span>
+              <div>
+                <div class="upi-confirm-text">
+                  {{ paymentLoading ? 'Loading payment...' : (isUpiOrder ? 'Confirming UPI payment...' : 'Awaiting payment...') }}
+                </div>
+                <div class="upi-confirm-sub">
+                  {{ isUpiOrder ? 'This usually takes a few seconds' : 'Payment will be collected on delivery' }}
+                </div>
+              </div>
             </div>
           </div>
           <div class="card location-card" *ngIf="delivery?.currentLat && delivery?.currentLng">
@@ -303,6 +311,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
 
   private hub?: signalR.HubConnection;
   private pollInterval?: ReturnType<typeof setInterval>;
+  private paymentPollInterval?: ReturnType<typeof setInterval>;
   private orderId = '';
 
   private readonly statusOrder = ['Placed', 'Confirmed', 'Preparing', 'Ready', 'PickedUp', 'Delivered'];
@@ -365,6 +374,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
 
   formatPayment(method: string): string {
     const map: Record<string, string> = {
+      UpiNow: '📲 UPI (Paid)',
       CashOnDelivery: '💵 Cash on Delivery',
       Card: '💳 Card',
     };
@@ -425,9 +435,47 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
 
   private loadPayment(orderId: string) {
     this.paymentSvc.getByOrder(orderId).subscribe({
-      next: p => { this.payment = p; this.paymentLoading = false; },
-      error: () => { this.paymentLoading = false; }
+      next: p => {
+        this.payment = p;
+        this.paymentLoading = false;
+        // If UPI payment is still Pending, poll until Confirmed
+        if (p.status === 'Pending' && this.isUpiOrder) {
+          this.pollPayment(orderId);
+        }
+      },
+      error: () => {
+        this.paymentLoading = false;
+        // Payment record not yet created — poll for it (covers race condition)
+        this.pollPayment(orderId);
+      }
     });
+  }
+
+  // Poll every 2s until payment record is found and confirmed (max 20s)
+  private pollPayment(orderId: string) {
+    let attempts = 0;
+    this.paymentPollInterval = setInterval(() => {
+      attempts++;
+      this.paymentSvc.getByOrder(orderId).subscribe({
+        next: p => {
+          this.payment = p;
+          this.paymentLoading = false;
+          if (p.status === 'Confirmed' || p.status === 'Failed' || attempts >= 10) {
+            clearInterval(this.paymentPollInterval);
+          }
+        },
+        error: () => {
+          this.paymentLoading = false;
+          if (attempts >= 10) clearInterval(this.paymentPollInterval);
+        }
+      });
+    }, 2000);
+  }
+
+  get isUpiOrder(): boolean {
+    // UpiNow = new name, Card = old enum value 0 (same position), both mean instant payment
+    const m = this.order?.paymentMethod;
+    return m === 'UpiNow' || m === 'Card';
   }
 
   get paymentStatusIcon(): string {
@@ -457,5 +505,6 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.hub?.stop();
     this.stopPolling();
+    if (this.paymentPollInterval) clearInterval(this.paymentPollInterval);
   }
 }

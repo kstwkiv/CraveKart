@@ -29,6 +29,12 @@ public class EmailService : IEmailService
     /// <inheritdoc/>
     public async Task SendAsync(string to, string subject, string body)
     {
+        if (string.IsNullOrWhiteSpace(to))
+        {
+            _logger.LogWarning("Email skipped — recipient address is empty. Subject: {Subject}", subject);
+            return;
+        }
+
         var smtp = _configuration.GetSection("Smtp");
         var host = smtp["Host"]!;
         var port = int.Parse(smtp["Port"]!);
@@ -37,18 +43,26 @@ public class EmailService : IEmailService
         var password = smtp["Password"]!;
         var enableSsl = bool.Parse(smtp["EnableSsl"] ?? "true");
 
-        using var client = new SmtpClient(host, port)
+        try
         {
-            Credentials = new NetworkCredential(username, password),
-            EnableSsl = enableSsl
-        };
+            using var client = new SmtpClient(host, port)
+            {
+                Credentials = new NetworkCredential(username, password),
+                EnableSsl = enableSsl
+            };
 
-        var message = new MailMessage(from, to, subject, body)
+            var message = new MailMessage(from, to, subject, body)
+            {
+                IsBodyHtml = true
+            };
+
+            await client.SendMailAsync(message);
+            _logger.LogInformation("Email sent to {To} | Subject: {Subject}", to, subject);
+        }
+        catch (Exception ex)
         {
-            IsBodyHtml = true
-        };
-
-        await client.SendMailAsync(message);
-        _logger.LogInformation("Email sent to {To} | Subject: {Subject}", to, subject);
+            _logger.LogError(ex, "Failed to send email to {To} | Subject: {Subject}", to, subject);
+            // Don't rethrow — a failed email should not crash the message consumer
+        }
     }
 }

@@ -56,10 +56,21 @@ public class PlaceOrderHandler : IRequestHandler<PlaceOrderCommand, OrderDto>
             OrderId = order.Id,
             CustomerId = order.CustomerId,
             RestaurantId = order.RestaurantId,
+            DeliveryAddress = order.DeliveryAddress,
+            SubTotal = order.SubTotal,
+            DeliveryFee = order.DeliveryFee,
+            Tax = order.Tax,
             TotalAmount = order.TotalAmount,
             PaymentMethod = order.PaymentMethod.ToString(),
             CustomerEmail = order.CustomerEmail,
-            PlacedAt = IstClock.Now
+            PlacedAt = IstClock.Now,
+            Items = order.OrderItems.Select(i => new OrderPlacedItemEvent
+            {
+                MenuItemName = i.MenuItemName,
+                Quantity = i.Quantity,
+                UnitPrice = i.UnitPrice,
+                Customizations = i.Customizations
+            }).ToList()
         }, cancellationToken);
 
         return new OrderDto
@@ -67,6 +78,8 @@ public class PlaceOrderHandler : IRequestHandler<PlaceOrderCommand, OrderDto>
             Id = order.Id,
             CustomerId = order.CustomerId,
             RestaurantId = order.RestaurantId,
+            RestaurantName = request.RestaurantName,
+            RestaurantLogoUrl = request.RestaurantLogoUrl,
             DeliveryAddress = order.DeliveryAddress,
             Status = order.Status,
             TotalAmount = order.TotalAmount,

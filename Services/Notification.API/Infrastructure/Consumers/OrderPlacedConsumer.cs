@@ -1,6 +1,7 @@
 using System.Text;
 using FoodFleet.Shared.Events.Orders;
 using MassTransit;
+using Microsoft.Extensions.Logging;
 using Notification.API.Application.Interfaces;
 
 namespace Notification.API.Infrastructure.Consumers;
@@ -8,21 +9,33 @@ namespace Notification.API.Infrastructure.Consumers;
 public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
 {
     private readonly IEmailService _emailService;
+    private readonly ILogger<OrderPlacedConsumer> _logger;
 
-    public OrderPlacedConsumer(IEmailService emailService)
+    public OrderPlacedConsumer(IEmailService emailService, ILogger<OrderPlacedConsumer> logger)
     {
         _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task Consume(ConsumeContext<OrderPlacedEvent> context)
     {
         var msg = context.Message;
+        _logger.LogInformation("OrderPlacedConsumer: received order {OrderId} for {Email}", msg.OrderId, msg.CustomerEmail);
+
+        if (string.IsNullOrWhiteSpace(msg.CustomerEmail))
+        {
+            _logger.LogWarning("OrderPlacedConsumer: CustomerEmail is empty for order {OrderId} — skipping email.", msg.OrderId);
+            return;
+        }
+
         var body = BuildEmailBody(msg);
 
         await _emailService.SendAsync(
             msg.CustomerEmail,
-            $"Order #{msg.OrderId.ToString()[..8].ToUpper()} Placed Successfully!",
+            $"✅ Order #{msg.OrderId.ToString()[..8].ToUpper()} Placed Successfully!",
             body);
+
+        _logger.LogInformation("OrderPlacedConsumer: email dispatched for order {OrderId}", msg.OrderId);
     }
 
     private static string BuildEmailBody(OrderPlacedEvent msg)
@@ -44,8 +57,18 @@ public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
                 """);
         }
 
-        var paymentIcon = msg.PaymentMethod == "CashOnDelivery" ? "💵" : "💳";
-        var paymentLabel = msg.PaymentMethod == "CashOnDelivery" ? "Cash on Delivery" : "Card";
+        var paymentIcon = msg.PaymentMethod switch
+        {
+            "CashOnDelivery" => "💵",
+            "UpiNow"         => "📲",
+            _                => "💳"
+        };
+        var paymentLabel = msg.PaymentMethod switch
+        {
+            "CashOnDelivery" => "Cash on Delivery",
+            "UpiNow"         => "UPI (Paid)",
+            _                => msg.PaymentMethod
+        };
 
         sb.Append($"""
             <!DOCTYPE html>

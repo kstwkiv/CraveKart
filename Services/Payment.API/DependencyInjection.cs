@@ -36,6 +36,7 @@ public static class DependencyInjection
         {
             x.AddConsumer<OrderPlacedConsumer>();
             x.AddConsumer<OrderCancelledConsumer>();
+            x.AddConsumer<DeliveryCompletedConsumer>();
         });
 
         return services;

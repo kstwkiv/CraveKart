@@ -98,6 +98,19 @@ public static class EmailTemplates
             {Cta("Rate Your Order", "http://localhost:4200/orders")}
         """);
 
+    /// <summary>Payment confirmed via UPI notification.</summary>
+    public static string PaymentConfirmed(string orderId, decimal amount, string paymentMethod, string confirmedAt) => Wrap(
+        headerEmoji: "✅",
+        headerBg: "linear-gradient(135deg,#4f46e5,#7c3aed)",
+        title: "Payment Confirmed!",
+        subtitle: $"Order #{orderId[..Math.Min(8, orderId.Length)].ToUpper()}",
+        body: $"""
+            <p style="{BodyText}">Your payment has been successfully received. Your order is now confirmed!</p>
+            {InfoBox("📲", $"<strong>Amount Paid:</strong> ₹{amount:F2}<br/><strong>Method:</strong> {(paymentMethod == "UpiNow" ? "UPI" : paymentMethod)}<br/><strong>Confirmed At:</strong> {confirmedAt} IST")}
+            <p style="{BodyText}">The restaurant has been notified and will start preparing your food shortly.</p>
+            {Cta("Track Your Order", "http://localhost:4200/orders")}
+        """);
+
     /// <summary>Payment failed notification.</summary>
     public static string PaymentFailed(string orderId, string reason) => Wrap(
         headerEmoji: "⚠️",

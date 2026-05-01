@@ -7,39 +7,53 @@ using Payment.API.Application.Interfaces;
 namespace Payment.API.Infrastructure.Consumers;
 
 /// <summary>
-/// MassTransit consumer that handles <see cref="OrderPlacedEvent"/> messages
-/// and automatically processes payment for the new order.
+/// Handles <see cref="OrderPlacedEvent"/>.
+/// - UpiNow  → creates a Confirmed payment immediately (triggers order confirmation).
+/// - CashOnDelivery → creates a Pending payment; confirmed only after delivery.
 /// </summary>
 public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
 {
     private readonly IPaymentService _paymentService;
     private readonly ILogger<OrderPlacedConsumer> _logger;
 
-    /// <summary>
-    /// Initializes a new instance of <see cref="OrderPlacedConsumer"/>.
-    /// </summary>
-    /// <param name="paymentService">The payment service for processing payments.</param>
-    /// <param name="logger">The logger for diagnostic output.</param>
     public OrderPlacedConsumer(IPaymentService paymentService, ILogger<OrderPlacedConsumer> logger)
     {
         _paymentService = paymentService;
         _logger = logger;
     }
 
-    /// <summary>
-    /// Processes the order placed event and initiates payment processing.
-    /// </summary>
-    /// <param name="context">The consume context containing the event message.</param>
     public async Task Consume(ConsumeContext<OrderPlacedEvent> context)
     {
-        _logger.LogInformation("Processing payment for Order {OrderId}", context.Message.OrderId);
+        var msg = context.Message;
+        _logger.LogInformation("Order {OrderId} placed with payment method {Method}", msg.OrderId, msg.PaymentMethod);
 
-        await _paymentService.ProcessAsync(new ProcessPaymentCommand(
-            context.Message.OrderId,
-            context.Message.CustomerId,
-            context.Message.CustomerEmail,
-            context.Message.TotalAmount,
-            context.Message.PaymentMethod),
-            context.CancellationToken);
+        var isCod = msg.PaymentMethod.Equals("CashOnDelivery", StringComparison.OrdinalIgnoreCase);
+
+        if (isCod)
+        {
+            // Create a Pending payment — will be confirmed when delivery completes
+            await _paymentService.CreatePendingAsync(new ProcessPaymentCommand(
+                msg.OrderId,
+                msg.CustomerId,
+                msg.CustomerEmail,
+                msg.TotalAmount,
+                msg.PaymentMethod),
+                context.CancellationToken);
+
+            _logger.LogInformation("COD order {OrderId} — payment pending until delivery.", msg.OrderId);
+        }
+        else
+        {
+            // UpiNow — confirm immediately, which triggers order → Confirmed
+            await _paymentService.ProcessAsync(new ProcessPaymentCommand(
+                msg.OrderId,
+                msg.CustomerId,
+                msg.CustomerEmail,
+                msg.TotalAmount,
+                msg.PaymentMethod),
+                context.CancellationToken);
+
+            _logger.LogInformation("UPI order {OrderId} — payment confirmed immediately.", msg.OrderId);
+        }
     }
 }

@@ -382,3 +382,32 @@
   color: var(--text-muted); font-size: 0.875rem;
   .pending-icon { font-size: 1.25rem; animation: spin 2s linear infinite; }
 }
+
+/* ── Payment pending/confirming states ── */
+@keyframes pendingSpin { to { transform: rotate(360deg); } }
+
+.pending-spinner {
+  display: inline-block;
+  width: 18px; height: 18px; flex-shrink: 0;
+  border: 2px solid rgba(45,106,79,0.2);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: pendingSpin 0.8s linear infinite;
+}
+
+.pending-spinner.upi-color {
+  border-color: rgba(99,102,241,0.2);
+  border-top-color: #6366f1;
+}
+
+.upi-confirming {
+  gap: 0.875rem !important;
+}
+
+.upi-confirm-text {
+  font-size: 0.875rem; font-weight: 600; color: var(--text-primary);
+}
+
+.upi-confirm-sub {
+  font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;
+}
