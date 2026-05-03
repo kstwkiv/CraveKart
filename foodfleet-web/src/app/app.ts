@@ -3,6 +3,10 @@ import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './shared/navbar/navbar';
 import { FooterComponent } from './shared/footer/footer';
 
+/**
+ * Root application component.
+ * Renders the global navbar, the router outlet for page content, and the footer.
+ */
 @Component({
   selector: 'app-root',
   standalone: true,

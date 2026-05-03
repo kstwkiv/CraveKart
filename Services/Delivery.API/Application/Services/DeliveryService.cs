@@ -8,12 +8,23 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Delivery.API.Application.Services;
 
+/// <summary>
+/// Application service implementing <see cref="IDeliveryService"/> for core delivery lifecycle operations.
+/// Handles agent assignment, real-time location updates via SignalR, and delivery completion,
+/// publishing domain events via <see cref="IEventPublisher"/> for downstream service coordination.
+/// </summary>
 public class DeliveryService : IDeliveryService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEventPublisher _eventPublisher;
     private readonly IHubContext<DeliveryHub> _hubContext;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DeliveryService"/>.
+    /// </summary>
+    /// <param name="unitOfWork">The unit of work for data access.</param>
+    /// <param name="eventPublisher">The event publisher for raising domain events.</param>
+    /// <param name="hubContext">The SignalR hub context for broadcasting real-time location updates.</param>
     public DeliveryService(
         IUnitOfWork unitOfWork,
         IEventPublisher eventPublisher,

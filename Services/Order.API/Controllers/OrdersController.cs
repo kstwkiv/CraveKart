@@ -54,6 +54,11 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Retrieves a single order by its unique identifier.
+    /// </summary>
+    /// <param name="id">The unique identifier of the order.</param>
+    /// <returns>The order DTO, or 404 if not found.</returns>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -62,6 +67,11 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Retrieves the order history for a specific customer.
+    /// </summary>
+    /// <param name="customerId">The unique identifier of the customer.</param>
+    /// <returns>A list of order DTOs for the customer.</returns>
     [HttpGet("customer/{customerId}")]
     public async Task<IActionResult> GetHistory(Guid customerId)
     {
@@ -69,6 +79,11 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Cancels an order. Accessible by Customer and Admin roles.
+    /// </summary>
+    /// <param name="id">The unique identifier of the order to cancel.</param>
+    /// <returns>200 OK on success, or 400 if the order cannot be cancelled.</returns>
     [HttpPost("{id}/cancel")]
     [Authorize(Roles = "Customer,Admin")]
     public async Task<IActionResult> Cancel(Guid id)
@@ -79,6 +94,11 @@ public class OrdersController : ControllerBase
         return Ok("Order cancelled.");
     }
 
+    /// <summary>
+    /// Retrieves all orders for a specific restaurant. Accessible by RestaurantOwner and Admin roles.
+    /// </summary>
+    /// <param name="restaurantId">The unique identifier of the restaurant.</param>
+    /// <returns>A list of order DTOs for the restaurant.</returns>
     [HttpGet("restaurant/{restaurantId}")]
     [Authorize(Roles = "RestaurantOwner,Admin")]
     public async Task<IActionResult> GetByRestaurant(Guid restaurantId)
@@ -87,6 +107,10 @@ public class OrdersController : ControllerBase
         return Ok(orders);
     }
 
+    /// <summary>
+    /// Retrieves all orders with Ready status for delivery agents to pick up.
+    /// </summary>
+    /// <returns>A list of ready order DTOs.</returns>
     [HttpGet("ready")]
     [Authorize(Roles = "DeliveryAgent,Admin")]
     public async Task<IActionResult> GetReadyOrders()
@@ -95,6 +119,12 @@ public class OrdersController : ControllerBase
         return Ok(orders);
     }
 
+    /// <summary>
+    /// Updates the status of an order. Accessible by RestaurantOwner, Admin, and DeliveryAgent roles.
+    /// </summary>
+    /// <param name="id">The unique identifier of the order to update.</param>
+    /// <param name="status">The new status to set.</param>
+    /// <returns>200 OK on success, or 404 if not found.</returns>
     [HttpPatch("{id}/status")]
     [Authorize(Roles = "RestaurantOwner,Admin,DeliveryAgent")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] OrderStatus status)

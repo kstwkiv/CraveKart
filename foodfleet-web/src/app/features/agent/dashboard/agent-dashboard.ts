@@ -1,24 +1,43 @@
-﻿import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿// 'import' — ES module keyword; pulls named exports from another module into this file's scope
+// 'Component'  — Angular decorator factory; marks a class as a component and attaches template/style metadata
+// 'OnInit'     — Angular lifecycle-hook interface; requires ngOnInit(); called after first ngOnChanges
+// 'OnDestroy'  — Angular lifecycle-hook interface; requires ngOnDestroy(); called just before the component is destroyed
+import { Component, OnInit, OnDestroy } from '@angular/core';
+// 'CommonModule' — provides *ngIf, *ngFor, async pipe, and other structural directives
 import { CommonModule } from '@angular/common';
+// 'FormsModule' — Angular module that enables template-driven forms and [(ngModel)] two-way binding
 import { FormsModule } from '@angular/forms';
+// 'DeliveryService' — application service that wraps HTTP calls to the Delivery API
 import { DeliveryService } from '../../../core/services/delivery.service';
+// 'OrderService' — application service that wraps HTTP calls to the Order API
 import { OrderService } from '../../../core/services/order.service';
+// 'DeliveryAgentDto' — TypeScript interface (pure type contract) for a delivery agent data transfer object
 import { DeliveryAgentDto } from '../../../core/models/delivery.models';
+// 'OrderDto' — TypeScript interface (pure type contract) for an order data transfer object
 import { OrderDto } from '../../../core/models/order.models';
 
+// 'interface' — TypeScript keyword; defines a pure structural contract with no runtime code
+// Used here as a local (non-exported) type for the active delivery shape
 interface ActiveDelivery {
-  id: string;
-  orderId: string;
-  status: string;
-  currentLat?: number;
-  currentLng?: number;
-  assignedAt: string;
+  id: string;           // 'string' — TypeScript primitive type: a sequence of UTF-16 characters
+  orderId: string;      // 'string' — foreign-key reference stored as text
+  status: string;       // 'string' — current delivery status (e.g. "Assigned", "Delivered")
+  currentLat?: number;  // '?' — optional property; may be undefined if location has not been shared yet
+  currentLng?: number;  // 'number' — TypeScript primitive type: covers both integers and floats
+  assignedAt: string;   // 'string' — ISO 8601 timestamp stored as text
 }
 
+/**
+ * Delivery agent dashboard component.
+ * Handles agent registration, availability toggling, vehicle management,
+ * real-time location sharing, ready-order queue polling, order pickup,
+ * and delivery completion with earnings tracking.
+ */
+// '@Component' — class decorator; Angular reads this metadata to compile the template and wire up DI
 @Component({
-  selector: 'app-agent-dashboard',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
+  selector: 'app-agent-dashboard',  // CSS selector used in templates/router to render this component
+  standalone: true,                 // standalone: true — no NgModule needed; the component manages its own imports
+  imports: [CommonModule, FormsModule], // 'imports' — Angular dependencies for this component's template
   template: `
     <div class="page">
 
@@ -404,15 +423,26 @@ interface ActiveDelivery {
   `,
   styleUrl: './agent-dashboard.scss'
 })
+// 'export' — makes this class importable by the Angular router and other modules
+// 'class'  — ES6/TypeScript keyword; defines a reusable blueprint with properties and methods
+// 'implements' — TypeScript keyword; enforces that the class satisfies the listed interface contracts
+// 'OnInit', 'OnDestroy' — Angular lifecycle interfaces being implemented here
 export class AgentDashboardComponent implements OnInit, OnDestroy {
+  // '?' — optional property; may be undefined until the HTTP profile response arrives
+  // 'DeliveryAgentDto' — TypeScript interface used as the type annotation
   profile?: DeliveryAgentDto;
-  activeDelivery?: ActiveDelivery;
-  readyOrders: OrderDto[] = [];
+  activeDelivery?: ActiveDelivery; // '?' — optional; undefined when no delivery is currently assigned
+  // 'OrderDto[]' — Array type annotation; an ordered collection of OrderDto objects
+  readyOrders: OrderDto[] = [];    // '= []' — initialised to empty array to avoid null-reference errors
+  // 'boolean' (inferred) — primitive type; true/false flag to show/hide the loading spinner
   readyOrdersLoading = false;
   loading = true;
   completing = false;
-  pickingUp: string | null = null;
+  // 'string | null' — union type; either a string order ID or null when no pickup is in progress
+  pickingUp: string | null = null; // 'null' — JS/TS primitive; explicit absence of a value
+  // 'string' (inferred) — default vehicle type for the registration form
   vehicleType = 'Bike';
+  // 'number' (inferred) — latitude and longitude for manual location update
   lat = 0;
   lng = 0;
   sharingLocation = false;
@@ -425,15 +455,20 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
   editVehicleType = 'Bike';
   savingVehicle = false;
 
-  private readonly EARN_PER_DELIVERY = 100;
+  // 'private' — access modifier; only accessible within this class
+  // 'readonly' — TypeScript modifier; the property cannot be reassigned after initialisation
+  private readonly EARN_PER_DELIVERY = 100; // 'number' (inferred) — constant earnings per delivery
 
-  // Stat panels
+  // Stat panels — union type with null; tracks which expandable panel is open
+  // 'null' — JS/TS primitive; used here to represent "no panel open"
   activePanel: 'earnings' | 'deliveries' | 'vehicle' | 'status' | null = null;
 
   togglePanel(panel: 'earnings' | 'deliveries' | 'vehicle' | 'status') {
+    // Ternary operator — if the same panel is clicked again, close it (null); otherwise open the new one
     this.activePanel = this.activePanel === panel ? null : panel;
   }
 
+  // 'readonly' — this array is initialised once and never reassigned; prevents accidental mutation of the reference
   readonly vehicleOptions = [
     { value: 'Bike',    label: 'Bike',    emoji: '🏍️' },
     { value: 'Scooter', label: 'Scooter', emoji: '🛵' },
@@ -441,83 +476,114 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
     { value: 'Bicycle', label: 'Bicycle', emoji: '🚲' },
   ];
 
-  private pollInterval?: ReturnType<typeof setInterval>;
+  // 'private' — only accessible within this class; used to store the polling interval handle
+  // 'ReturnType<typeof setInterval>' — TypeScript utility type that infers the return type of setInterval
+  private pollInterval?: ReturnType<typeof setInterval>; // '?' — optional; undefined until polling starts
 
+  // 'constructor' — called by Angular's DI system when instantiating this class
+  // 'private' — access modifier; these injected services are only accessible within this class
   constructor(private svc: DeliveryService, private orderSvc: OrderService) {}
 
+  // 'ngOnInit' — Angular lifecycle hook method; called once after the component's inputs are first set
   ngOnInit() {
+    // 'subscribe' — RxJS method that activates an Observable and registers callbacks for next/error/complete
     this.svc.getMyProfile().subscribe({
+      // 'next' — callback invoked when the Observable emits a value (successful HTTP response)
       next: p => {
         this.profile = p;
         this.loading = false;
         this.checkDelivery();
         this.startPolling();
       },
+      // 'error' — callback invoked when the Observable errors (HTTP error, network failure, etc.)
       error: () => { this.loading = false; }
     });
   }
 
+  // 'ngOnDestroy' — Angular lifecycle hook method; called just before Angular destroys the component
+  // Used here to cancel the polling interval and prevent memory leaks
   ngOnDestroy() {
+    // 'if' — guards against calling clearInterval when no interval was set
     if (this.pollInterval) clearInterval(this.pollInterval);
   }
 
-  get avgEarnings(): number {
+  // 'get' — TypeScript getter; defines a computed property accessed like a field (no parentheses)
+  get avgEarnings(): number { // 'number' — return type annotation
+    // 'if' — short-circuit guard; returns 0 when there are no deliveries to avoid division by zero
     if (!this.profile?.totalDeliveries) return 0;
     return this.displayEarnings / this.profile.totalDeliveries;
   }
 
-  /** Auto-calculate earnings from deliveries × ₹100 if backend hasn't stored it yet */
-  get displayEarnings(): number {
+  /**
+   * Calculates total earnings from the backend value if available,
+   * otherwise falls back to `totalDeliveries × ₹100`.
+   */
+  // 'get' — TypeScript getter; computed property that reads profile data and returns a number
+  get displayEarnings(): number { // 'number' — return type annotation
+    // 'if' — guard; returns 0 when profile is not yet loaded
     if (!this.profile) return 0;
     return this.profile.totalEarnings > 0
       ? this.profile.totalEarnings
       : this.profile.totalDeliveries * this.EARN_PER_DELIVERY;
   }
 
-  vehicleEmoji(type: string): string {
+  vehicleEmoji(type: string): string { // 'string' — parameter and return type annotations
+    // '??' — nullish coalescing operator; falls back to '🚴' if no matching vehicle option is found
     return this.vehicleOptions.find(v => v.value === type)?.emoji ?? '🚴';
   }
 
+  // 'private' — only accessible within this class; encapsulates the polling setup logic
   private startPolling() {
+    // setInterval — schedules a callback to run repeatedly every 10 seconds
     this.pollInterval = setInterval(() => {
+      // 'if' — conditional; only polls for orders when the agent is available and has no active delivery
       if (this.profile?.isAvailable && !this.activeDelivery) this.loadReadyOrders();
       else if (this.activeDelivery) this.checkDelivery();
-    }, 10_000);
+    }, 10_000); // numeric separator '_' — improves readability of large numbers (10_000 = 10000)
   }
 
   register() {
+    // 'subscribe' — activates the Observable returned by registerAgent(); triggers the HTTP POST call
     this.svc.registerAgent(this.vehicleType).subscribe({
       next: p => { this.profile = p; this.loadReadyOrders(); this.startPolling(); },
       error: (err) => {
+        // Ternary operator — selects a user-friendly message based on the error status code
         const msg = err.status === 0
           ? 'Delivery service is offline. Please try again later.'
-          : err.error?.message || err.error || 'Registration failed';
+          : err.error?.message || err.error || 'Registration failed'; // '||' — logical OR; falls back through options
         alert(msg);
       }
     });
   }
 
   toggleAvailability() {
+    // 'subscribe' — activates the Observable; triggers the HTTP PATCH call to toggle availability
     this.svc.toggleAvailability().subscribe(res => {
+      // Spread operator '...' — creates a new object with all existing profile properties, overriding isAvailable
+      // '!' — non-null assertion operator; tells TypeScript that profile is definitely not null/undefined here
       this.profile = { ...this.profile!, isAvailable: res.isAvailable };
+      // 'if' — only loads ready orders when the agent goes online
       if (res.isAvailable) this.loadReadyOrders();
     });
   }
 
   // ── Vehicle edit ──────────────────────────────────────────────────────────
   openVehicleEdit() {
+    // '??' — nullish coalescing operator; falls back to 'Bike' if profile is undefined
     this.editVehicleType = this.profile?.vehicleType ?? 'Bike';
-    this.showVehicleEdit = true;
+    this.showVehicleEdit = true; // 'boolean' — true shows the modal overlay
   }
 
   closeVehicleEdit() {
-    this.showVehicleEdit = false;
+    this.showVehicleEdit = false; // 'boolean' — false hides the modal overlay
   }
 
   saveVehicle() {
     this.savingVehicle = true;
+    // 'subscribe' — activates the Observable; triggers the HTTP PATCH call to update the vehicle type
     this.svc.updateVehicle(this.editVehicleType).subscribe({
       next: updated => {
+        // Spread operator '...' — creates a new object merging existing profile with the updated vehicleType
         this.profile = { ...this.profile!, vehicleType: updated.vehicleType };
         this.savingVehicle = false;
         this.showVehicleEdit = false;
@@ -528,27 +594,33 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
 
   // ── Delivery flow ─────────────────────────────────────────────────────────
   checkDelivery() {
+    // 'subscribe' — activates the Observable; triggers the HTTP GET call to check for an active delivery
     this.svc.getMyDelivery().subscribe({
       next: d => { this.activeDelivery = d; },
+      // 'undefined' — JS/TS primitive; used here to clear the active delivery when none is found
       error: () => { this.activeDelivery = undefined; this.loadReadyOrders(); }
     });
   }
 
   loadReadyOrders() {
     this.readyOrdersLoading = true;
+    // 'subscribe' — activates the Observable; triggers the HTTP GET call for ready orders
     this.svc.getReadyOrders().subscribe({
       next: orders => { this.readyOrders = orders; this.readyOrdersLoading = false; },
       error: () => { this.readyOrders = []; this.readyOrdersLoading = false; }
     });
   }
 
-  pickupOrder(order: OrderDto) {
-    this.pickingUp = order.id;
+  pickupOrder(order: OrderDto) { // 'OrderDto' — type annotation; ensures only valid order objects are passed
+    this.pickingUp = order.id; // 'string' — stores the order ID to show a per-row loading state
+    // 'subscribe' — activates the Observable; triggers the HTTP POST call to assign the delivery
     this.svc.pickup(order.id).subscribe({
       next: delivery => {
-        this.activeDelivery = delivery as any;
+        this.activeDelivery = delivery as any; // 'as any' — type assertion; bypasses strict type-checking for the cast
         this.readyOrders = [];
+        // 'null' — JS/TS primitive; clears the per-row loading state
         this.pickingUp = null;
+        // 'if' — guards against updating a potentially undefined profile
         if (this.profile) this.profile = { ...this.profile, isAvailable: false };
       },
       error: (err) => {
@@ -560,17 +632,23 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
   }
 
   shareLocation() {
+    // 'if' — guards against calling GPS API when it is not supported by the browser
+    // 'return' — exits the function early when GPS is unavailable
     if (!navigator.geolocation) { this.gpsStatus = 'GPS not supported'; return; }
     this.sharingLocation = true;
     this.gpsStatus = 'Getting location...';
     navigator.geolocation.getCurrentPosition(
       pos => {
+        // Destructuring assignment — extracts latitude and longitude from the coords object
         const { latitude, longitude } = pos.coords;
+        // 'subscribe' — activates the Observable; triggers the HTTP PATCH call to update the agent's location
         this.svc.updateLocation(this.profile!.id, latitude, longitude).subscribe({
           next: () => {
             this.gpsStatus = `✅ Shared: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
             this.sharingLocation = false;
+            // 'if' — only updates the active delivery location when a delivery is in progress
             if (this.activeDelivery)
+              // Spread operator '...' — creates a new object merging existing delivery with updated coordinates
               this.activeDelivery = { ...this.activeDelivery, currentLat: latitude, currentLng: longitude };
           },
           error: () => { this.gpsStatus = '❌ Failed to share location'; this.sharingLocation = false; }
@@ -581,15 +659,22 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
   }
 
   completeDelivery() {
+    // 'if' — guards against completing when there is no active delivery or the user cancels the confirm dialog
+    // 'return' — exits the function early in either guard case
     if (!this.activeDelivery || !confirm('Mark this order as delivered?')) return;
     const orderId = this.activeDelivery.orderId;
     this.completing = true;
+    // 'subscribe' — activates the Observable; triggers the HTTP POST call to mark the delivery complete
     this.svc.complete(orderId).subscribe({
       next: () => {
+        // Also update the order status in the Order API (fire-and-forget; errors are silently ignored)
         this.orderSvc.updateStatus(orderId, 5).subscribe({ error: () => {} });
+        // 'undefined' — clears the active delivery reference after completion
         this.activeDelivery = undefined;
         this.completing = false;
+        // 'if' — guards against updating a potentially undefined profile
         if (this.profile) {
+          // Spread operator '...' — creates a new profile object with updated delivery count and earnings
           this.profile = {
             ...this.profile,
             totalDeliveries: this.profile.totalDeliveries + 1,
@@ -604,14 +689,18 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
   }
 
   updateLocation() {
+    // 'if' — guards against sending a location update when both lat and lng are 0 (default/unset)
     if (!this.lat && !this.lng) return;
     this.updatingLocation = true;
     this.locationUpdated = false;
+    // 'subscribe' — activates the Observable; triggers the HTTP PATCH call to update the agent's location
     this.svc.updateAgentLocation(this.lat, this.lng).subscribe({
       next: updated => {
+        // Spread operator '...' — creates a new profile object with updated location coordinates
         this.profile = { ...this.profile!, currentLat: updated.currentLat, currentLng: updated.currentLng };
         this.updatingLocation = false;
         this.locationUpdated = true;
+        // Auto-hide the success message after 3 seconds
         setTimeout(() => this.locationUpdated = false, 3000);
       },
       error: () => {
@@ -622,8 +711,10 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
   }
 
   useGPS() {
+    // 'if' — guards against calling GPS API when it is not supported by the browser
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(pos => {
+      // Destructuring — extracts latitude and longitude from the GeolocationCoordinates object
       this.lat = pos.coords.latitude;
       this.lng = pos.coords.longitude;
     });

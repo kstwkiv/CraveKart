@@ -1,11 +1,18 @@
+// 'namespace' — declares the logical scope for this class; prevents name collisions across assemblies
 namespace Notification.API.Infrastructure.Services;
 
 /// <summary>
 /// Shared HTML email layout for all CraveKart transactional emails.
 /// Brand colours: primary green #2d6a4f, accent gold #e9c46a
 /// </summary>
+// 'public' — access modifier: this class is visible to any other namespace or assembly
+// 'static' — the class belongs to the type itself; no instance is ever created
+//   Static classes are idiomatic for utility/helper types that only contain stateless methods or constants
 public static class EmailTemplates
 {
+    // 'private' — accessible only within this class; hides implementation details from callers
+    // 'const' — a compile-time constant; the value is baked into the IL at every usage site
+    // 'string' — a reference type representing an immutable sequence of Unicode characters
     private const string Brand   = "CraveKart";
     private const string Primary = "#2d6a4f";
     private const string Accent  = "#e9c46a";
@@ -15,11 +22,16 @@ public static class EmailTemplates
     // ── Public builders ──────────────────────────────────────────────────────
 
     /// <summary>Welcome email sent after registration.</summary>
+    // 'public static' — callable without an instance; part of the class's public API
+    // 'string' return type — the method produces an HTML string
+    // Expression-bodied member (=>) — concise single-expression method body; equivalent to { return Wrap(...); }
     public static string Welcome(string fullName) => Wrap(
         headerEmoji: "🎉",
+        // String interpolation ($"...") — embeds expressions inside a string literal at runtime
         headerBg: $"linear-gradient(135deg,{Primary},{Accent})",
         title: $"Welcome to {Brand}, {FirstName(fullName)}!",
         subtitle: "Your food adventure starts now",
+        // Raw string literal (""" ... """) — multi-line string without escape sequences; introduced in C# 11
         body: $"""
             <p style="{BodyText}">Hi <strong>{fullName}</strong>,</p>
             <p style="{BodyText}">We're thrilled to have you on board! {Brand} connects you with the best restaurants in your city — from biryani to burgers, it's all just a tap away.</p>
@@ -64,6 +76,8 @@ public static class EmailTemplates
         headerEmoji: StatusEmoji(newStatus),
         headerBg: StatusGradient(newStatus),
         title: $"Order {StatusLabel(newStatus)}",
+        // Range operator [..Math.Min(8, orderId.Length)] — slices the first 8 characters (or fewer) of the orderId string
+        // .ToUpper() — converts the slice to uppercase for display
         subtitle: $"Order #{orderId[..Math.Min(8, orderId.Length)].ToUpper()}",
         body: $"""
             <p style="{BodyText}">Your order status has been updated.</p>
@@ -99,6 +113,7 @@ public static class EmailTemplates
         """);
 
     /// <summary>Payment confirmed via UPI notification.</summary>
+    // 'decimal' — 128-bit high-precision numeric type; used for monetary amounts to avoid floating-point rounding errors
     public static string PaymentConfirmed(string orderId, decimal amount, string paymentMethod, string confirmedAt) => Wrap(
         headerEmoji: "✅",
         headerBg: "linear-gradient(135deg,#4f46e5,#7c3aed)",
@@ -151,7 +166,10 @@ public static class EmailTemplates
         """);
 
     /// <summary>Restaurant rejected or suspended notification.</summary>
+    // 'bool isSuspended' — a boolean parameter; true means suspended, false means rejected
+    //   bool is a value type that holds exactly two states: true or false
     public static string RestaurantRejected(string restaurantName, string reason, bool isSuspended) => Wrap(
+        // Ternary operator (? :) — inline if/else; selects one of two values based on the bool condition
         headerEmoji: isSuspended ? "⏸️" : "❌",
         headerBg: isSuspended ? "linear-gradient(135deg,#92400e,#d97706)" : "linear-gradient(135deg,#7f1d1d,#dc2626)",
         title: isSuspended ? "Restaurant Suspended" : "Application Not Approved",
@@ -165,11 +183,15 @@ public static class EmailTemplates
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
+    // 'private const string' — compile-time CSS string constant; shared across all template methods
     private const string BodyText = "font-size:15px;color:#374151;line-height:1.7;margin:0 0 16px;";
 
+    // 'private static' — helper method; no instance needed, not part of the public API
+    // Expression-bodied (=>) — single-expression body; splits the full name on spaces and returns the first token
     private static string FirstName(string fullName) =>
         fullName.Split(' ')[0];
 
+    // Raw string literal (""" ... """) — multi-line string; avoids escaping HTML quotes and braces
     private static string InfoBox(string icon, string content) => $"""
         <div style="background:#f0f7f2;border-left:4px solid {Primary};border-radius:0 10px 10px 0;padding:16px 20px;margin:20px 0;display:flex;gap:12px;align-items:flex-start;">
           <span style="font-size:20px;flex-shrink:0;">{icon}</span>
@@ -177,12 +199,15 @@ public static class EmailTemplates
         </div>
         """;
 
+    // 'bool danger = false' — optional parameter with a default value; callers omit it for the normal (green) CTA
     private static string Cta(string label, string url, bool danger = false) => $"""
         <div style="text-align:center;margin:28px 0 8px;">
           <a href="{url}" style="display:inline-block;padding:14px 36px;background:{(danger ? "#dc2626" : Primary)};color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.3px;">{label}</a>
         </div>
         """;
 
+    // Switch expression — a concise pattern-matching construct introduced in C# 8;
+    //   each arm (pattern => result) is evaluated in order; '_' is the discard/default arm
     private static string StatusEmoji(string status) => status.ToLower() switch
     {
         "confirmed" => "✅",
@@ -191,9 +216,11 @@ public static class EmailTemplates
         "pickedup"  => "🛵",
         "delivered" => "🏠",
         "cancelled" => "❌",
+        // '_' — discard pattern (default case); matches any value not matched above
         _           => "📋"
     };
 
+    // Switch expression — maps status strings to human-readable labels
     private static string StatusLabel(string status) => status.ToLower() switch
     {
         "confirmed" => "Confirmed",
@@ -205,6 +232,7 @@ public static class EmailTemplates
         _           => status
     };
 
+    // Switch expression — maps status strings to descriptive sentences shown in the email body
     private static string StatusDescription(string status) => status.ToLower() switch
     {
         "confirmed" => "The restaurant has accepted your order.",
@@ -216,6 +244,7 @@ public static class EmailTemplates
         _           => ""
     };
 
+    // Switch expression — maps status strings to CSS gradient strings for the email header background
     private static string StatusGradient(string status) => status.ToLower() switch
     {
         "confirmed" => $"linear-gradient(135deg,{Primary},#52b788)",
@@ -228,6 +257,8 @@ public static class EmailTemplates
     };
 
     /// <summary>Wraps content in the shared CraveKart email shell.</summary>
+    // 'private static' — internal helper; not exposed to callers of EmailTemplates
+    // All parameters are 'string' — the method assembles them into a complete HTML document
     private static string Wrap(string headerEmoji, string headerBg, string title, string subtitle, string body) => $"""
         <!DOCTYPE html>
         <html lang="en">

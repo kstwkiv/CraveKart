@@ -4,6 +4,11 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 
+/**
+ * Root application configuration.
+ * Registers zone-based change detection, the router with lazy-loaded routes,
+ * and the HTTP client with the JWT auth interceptor.
+ */
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),

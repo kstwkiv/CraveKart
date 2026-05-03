@@ -5,10 +5,14 @@ import { OrderService } from './order.service';
 import { RestaurantService } from './restaurant.service';
 import { RestaurantDto } from '../models/restaurant.models';
 
+/** A single restaurant recommendation with a human-readable reason and match score. */
 export interface Recommendation {
+  /** The recommended restaurant. */
   restaurant: RestaurantDto;
-  reason: string;       // e.g. "Because you ordered Indian food"
-  matchScore: number;   // higher = better match
+  /** A human-readable reason for the recommendation (e.g., "Because you love Indian food"). */
+  reason: string;
+  /** A numeric score — higher values indicate a better match. */
+  matchScore: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -21,7 +25,12 @@ export class RecommendationService {
 
   /**
    * Returns up to `limit` restaurant recommendations for a customer,
-   * derived purely from their order history + the restaurant catalogue.
+   * derived purely from their order history and the restaurant catalogue.
+   * Signals used: cuisine frequency, restaurant repeat-order frequency,
+   * average rating, and estimated delivery time.
+   * @param customerId - The customer's user ID.
+   * @param limit - Maximum number of recommendations to return (default 6).
+   * @returns An observable that emits an array of {@link Recommendation}.
    */
   getRecommendations(customerId: string, limit = 6): Observable<Recommendation[]> {
     return forkJoin({

@@ -1,11 +1,21 @@
+// 'import' — ES module keyword; brings named exports from another module into this file's scope
+// 'Component' — Angular decorator factory that marks a class as a component and attaches metadata
 import { Component } from '@angular/core';
+// 'CommonModule' — Angular module that provides *ngIf, *ngFor, async pipe, and other common directives
 import { CommonModule } from '@angular/common';
+// 'RouterLink' — Angular directive that turns an anchor tag into a client-side navigation link
 import { RouterLink } from '@angular/router';
 
+/**
+ * Landing page component.
+ * Displays the hero section, how-it-works steps, cuisine categories,
+ * platform benefits, partner CTAs, and a final call-to-action banner.
+ */
+// '@Component' — class decorator; Angular reads this metadata to compile the template and wire up DI
 @Component({
-  selector: 'app-landing',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
+  selector: 'app-landing',  // CSS selector used in templates/router to render this component: <app-landing>
+  standalone: true,         // standalone: true — no NgModule needed; the component manages its own imports
+  imports: [CommonModule, RouterLink], // 'imports' — declares Angular dependencies available inside this component's template
   template: `
     <!-- ── HERO ── -->
     <section class="hero">
@@ -144,9 +154,12 @@ import { RouterLink } from '@angular/router';
   `,
   styleUrl: './landing.scss'
 })
+// 'export' — makes this class importable by the Angular router and other modules
+// 'class'  — ES6/TypeScript keyword; defines a reusable blueprint with properties and methods
 export class LandingComponent {
+  // Array literal — an ordered, indexed collection of objects; TypeScript infers the element type from the values
   categories = [
-    { emoji: '🍕', name: 'Pizza' },
+    { emoji: '🍕', name: 'Pizza' },      // object literal — anonymous inline object with two string properties
     { emoji: '🍔', name: 'Burgers' },
     { emoji: '🍛', name: 'Biryani' },
     { emoji: '🍣', name: 'Sushi' },
@@ -160,6 +173,7 @@ export class LandingComponent {
     { emoji: '🦞', name: 'Seafood' },
   ];
 
+  // Array of objects — each element is an anonymous object with three string properties
   whys = [
     { icon: '⚡', title: 'Lightning Fast', desc: 'Average delivery time of 25 minutes. We know you\'re hungry.' },
     { icon: '🔒', title: 'Safe & Secure', desc: 'Your payments and personal data are always protected.' },

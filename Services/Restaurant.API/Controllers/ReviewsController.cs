@@ -42,6 +42,12 @@ public class ReviewsController : ControllerBase
     }
 
     // POST /api/v1/reviews
+    /// <summary>
+    /// Submits a new review for a restaurant. Accessible by Customer role only.
+    /// Each customer can only review a specific order once.
+    /// </summary>
+    /// <param name="request">The request containing restaurant ID, order ID, rating, and optional text.</param>
+    /// <returns>The created review DTO, or 400/409 on validation failure.</returns>
     [HttpPost]
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> Create([FromBody] CreateReviewRequest request)
@@ -83,6 +89,12 @@ public class ReviewsController : ControllerBase
     }
 
     // POST /api/v1/reviews/{id}/response
+    /// <summary>
+    /// Adds or updates the restaurant owner's response to a review. Accessible by RestaurantOwner role only.
+    /// </summary>
+    /// <param name="id">The unique identifier of the review to respond to.</param>
+    /// <param name="request">The request containing the owner's response text.</param>
+    /// <returns>The updated review DTO, or 404 if not found.</returns>
     [HttpPost("{id}/response")]
     [Authorize(Roles = "RestaurantOwner")]
     public async Task<IActionResult> Respond(Guid id, [FromBody] RespondToReviewRequest request)
@@ -97,6 +109,11 @@ public class ReviewsController : ControllerBase
     }
 
     // DELETE /api/v1/reviews/{id}  (Admin only)
+    /// <summary>
+    /// Deletes a review and recalculates the restaurant's average rating. Accessible by Admin role only.
+    /// </summary>
+    /// <param name="id">The unique identifier of the review to delete.</param>
+    /// <returns>204 No Content on success, or 404 if not found.</returns>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(Guid id)

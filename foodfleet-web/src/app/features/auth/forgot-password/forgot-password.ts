@@ -4,6 +4,11 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
+/**
+ * Forgot-password page component.
+ * Two-step flow: first collects the user's email and sends an OTP,
+ * then presents a form to enter the OTP and set a new password.
+ */
 @Component({
   selector: 'app-forgot-password',
   standalone: true,

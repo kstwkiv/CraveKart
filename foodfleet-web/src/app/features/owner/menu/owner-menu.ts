@@ -1,14 +1,32 @@
+// 'import' — ES module keyword; pulls named exports from another module into this file's scope
+// 'Component'         — Angular decorator factory; marks a class as a component and attaches template/style metadata
+// 'OnInit'            — Angular lifecycle-hook interface; requires ngOnInit(); called after first ngOnChanges
+// 'ChangeDetectorRef' — Angular service for manually triggering change detection (needed with OnPush or async mutations)
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+// 'CommonModule' — provides *ngIf, *ngFor, async pipe, and other structural directives
 import { CommonModule } from '@angular/common';
+// 'FormsModule' — Angular module that enables template-driven forms and [(ngModel)] two-way binding
 import { FormsModule } from '@angular/forms';
+// 'RouterLink'      — directive that turns an anchor into a client-side navigation link
+// 'ActivatedRoute'  — Angular service that provides access to the current route's parameters and data
 import { RouterLink, ActivatedRoute } from '@angular/router';
+// 'RestaurantService' — application service that wraps HTTP calls to the Restaurant API
 import { RestaurantService } from '../../../core/services/restaurant.service';
+// 'MenuCategoryDto' — TypeScript interface (pure type contract) for a menu category data transfer object
+// 'MenuItemDto'     — TypeScript interface (pure type contract) for a menu item data transfer object
 import { MenuCategoryDto, MenuItemDto } from '../../../core/models/restaurant.models';
 
+/**
+ * Owner menu management component.
+ * Allows restaurant owners to add menu categories, create and edit menu items
+ * (with image upload), toggle item availability, and delete items.
+ * Supports per-category pagination for large menus.
+ */
+// '@Component' — class decorator; Angular reads this metadata to compile the template and wire up DI
 @Component({
-  selector: 'app-owner-menu',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  selector: 'app-owner-menu',  // CSS selector used in templates/router to render this component
+  standalone: true,            // standalone: true — no NgModule needed; the component manages its own imports
+  imports: [CommonModule, FormsModule, RouterLink], // 'imports' — Angular dependencies for this component's template
   template: `
     <div class="page">
       <div class="page-header">
@@ -190,68 +208,100 @@ import { MenuCategoryDto, MenuItemDto } from '../../../core/models/restaurant.mo
     @keyframes slideDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
   `]
 })
+// 'export' — makes this class importable by the Angular router and other modules
+// 'class'  — ES6/TypeScript keyword; defines a reusable blueprint with properties and methods
+// 'implements' — TypeScript keyword; enforces that the class satisfies the listed interface contracts
+// 'OnInit' — Angular lifecycle interface being implemented; requires ngOnInit() method
 export class OwnerMenuComponent implements OnInit {
+  // 'string' (inferred) — stores the restaurant ID extracted from the route parameters
   restaurantId = '';
-  categories: MenuCategoryDto[] = [];
-  newCategoryName = '';
+  // 'MenuCategoryDto[]' — Array type annotation; an ordered collection of MenuCategoryDto objects
+  categories: MenuCategoryDto[] = []; // '= []' — initialised to empty array to avoid null-reference errors
+  newCategoryName = '';  // 'string' — bound to the new-category input via [(ngModel)]
+  // 'string | null' — union type; either the ID of the category being added to, or null when no form is open
+  // 'null' — JS/TS primitive; explicit absence of a value
   addingTo: string | null = null;
+  // Inline object type — anonymous shape for the new-item form fields
   newItem = { name: '', description: '', price: 0, dietaryTags: '', imageUrl: '' };
 
   // Edit state
+  // 'string | null' — either the ID of the item being edited, or null when no edit form is open
   editingItemId: string | null = null;
   editItem = { name: '', description: '', price: 0, dietaryTags: '', imageUrl: '' };
+  // 'boolean' (inferred) — true while the save HTTP call is in flight; disables the Save button
   savingEdit = false;
 
+  // 'constructor' — called by Angular's DI system when instantiating this class
+  // 'private' — access modifier; these injected services are only accessible within this class
   constructor(private route: ActivatedRoute, private restaurantSvc: RestaurantService, private cdr: ChangeDetectorRef) {}
 
+  // 'ngOnInit' — Angular lifecycle hook method; called once after the component's inputs are first set
   ngOnInit() {
+    // 'route.snapshot.paramMap.get()' — reads a route parameter by name from the current URL snapshot
+    // '??' — nullish coalescing operator; falls back to '' if the parameter is null
     this.restaurantId = this.route.snapshot.paramMap.get('id') ?? '';
     this.load();
   }
 
   load() {
+    // 'subscribe' — RxJS method that activates an Observable and registers callbacks for emitted values
     this.restaurantSvc.getMenu(this.restaurantId).subscribe(c => { this.categories = c; this.cdr.markForCheck(); });
+    // 'cdr.markForCheck()' — tells Angular's change detector to re-check this component on the next cycle
   }
 
   addCategory() {
+    // 'if' — guards against creating a category with a blank name
+    // 'return' — exits the function early when the guard condition is met
     if (!this.newCategoryName.trim()) return;
+    // 'subscribe' — activates the Observable; triggers the HTTP POST call to create the category
     this.restaurantSvc.createCategory(this.restaurantId, this.newCategoryName.trim()).subscribe(cat => {
+      // '.push()' — Array method; appends the new category to the end of the categories array
       this.categories.push(cat);
       this.newCategoryName = '';
-      this.cdr.markForCheck();
+      this.cdr.markForCheck(); // triggers change detection after mutating the array
     });
   }
 
-  startAddItem(categoryId: string) {
-    this.addingTo = categoryId;
+  startAddItem(categoryId: string) { // 'string' — parameter type annotation
+    this.addingTo = categoryId; // 'string' — sets the active category for the add-item form
+    // Reset the new-item form fields to their defaults
     this.newItem = { name: '', description: '', price: 0, dietaryTags: '', imageUrl: '' };
   }
 
-  addItem(cat: MenuCategoryDto) {
+  addItem(cat: MenuCategoryDto) { // 'MenuCategoryDto' — type annotation; ensures only valid category objects are passed
+    // 'subscribe' — activates the Observable; triggers the HTTP POST call to create the menu item
     this.restaurantSvc.createMenuItem(this.restaurantId, {
       categoryId: cat.id,
       name: this.newItem.name,
       description: this.newItem.description,
       price: this.newItem.price,
       dietaryTags: this.newItem.dietaryTags,
+      // '|| undefined' — converts empty string to undefined so the API receives no value rather than an empty string
       imageUrl: this.newItem.imageUrl || undefined
     }).subscribe(item => {
-      cat.items.push(item);
+      cat.items.push(item); // '.push()' — appends the new item to the category's items array
+      // 'null' — clears the addingTo state to close the add-item form
       this.addingTo = null;
       this.cdr.markForCheck();
     });
   }
 
-  toggleAvail(item: MenuItemDto) {
+  toggleAvail(item: MenuItemDto) { // 'MenuItemDto' — type annotation; ensures only valid menu item objects are passed
+    // 'subscribe' — activates the Observable; triggers the HTTP PATCH call to toggle availability
     this.restaurantSvc.updateMenuItem(item.id, { isAvailable: !item.isAvailable }).subscribe(updated => {
+      // 'boolean' — updated.isAvailable is a boolean; assigned back to the item to reflect the new state
       item.isAvailable = updated.isAvailable;
       this.cdr.markForCheck();
     });
   }
 
   deleteItem(item: MenuItemDto, cat: MenuCategoryDto) {
+    // 'if' — guards against deleting without user confirmation
+    // 'return' — exits the function early if the user cancels
     if (!confirm(`Delete "${item.name}"?`)) return;
+    // 'subscribe' — activates the Observable; triggers the HTTP DELETE call
     this.restaurantSvc.deleteMenuItem(item.id).subscribe(() => {
+      // '.filter()' — Array method; returns a new array excluding the deleted item
       cat.items = cat.items.filter(i => i.id !== item.id);
       this.cdr.markForCheck();
     });
@@ -259,10 +309,13 @@ export class OwnerMenuComponent implements OnInit {
 
   startEdit(item: MenuItemDto) {
     // Close add form if open
+    // 'null' — clears the addingTo state to close any open add-item form
     this.addingTo = null;
     // Toggle: clicking edit on the same item closes it
+    // 'if' — checks whether the same item is already being edited
     if (this.editingItemId === item.id) { this.cancelEdit(); return; }
-    this.editingItemId = item.id;
+    this.editingItemId = item.id; // 'string' — stores the ID of the item being edited
+    // '??' — nullish coalescing operator; falls back to '' if the property is null or undefined
     this.editItem = {
       name: item.name,
       description: item.description ?? '',
@@ -270,25 +323,32 @@ export class OwnerMenuComponent implements OnInit {
       dietaryTags: item.dietaryTags ?? '',
       imageUrl: item.imageUrl ?? ''
     };
-    this.savingEdit = false;
+    this.savingEdit = false; // 'boolean' — resets the saving state when opening a new edit form
   }
 
   cancelEdit() {
+    // 'null' — clears the editingItemId to close the edit form
     this.editingItemId = null;
     this.savingEdit = false;
   }
 
   saveEdit(item: MenuItemDto) {
+    // 'if' — guards against saving when required fields are empty
+    // 'return' — exits the function early when the guard condition is met
     if (!this.editItem.name.trim() || !this.editItem.price) return;
     this.savingEdit = true;
+    // 'subscribe' — activates the Observable; triggers the HTTP PATCH call to update the menu item
     this.restaurantSvc.updateMenuItem(item.id, {
       name: this.editItem.name.trim(),
       description: this.editItem.description.trim(),
+      // 'Number()' — built-in conversion function; converts the value to a number type
       price: Number(this.editItem.price),
       dietaryTags: this.editItem.dietaryTags.trim(),
       imageUrl: this.editItem.imageUrl || undefined
     }).subscribe({
+      // 'next' — callback invoked when the Observable emits a value (successful HTTP response)
       next: updated => {
+        // Mutate the item in-place so the template reflects the updated values immediately
         item.name        = updated.name;
         item.description = updated.description;
         item.price       = updated.price;
@@ -297,27 +357,33 @@ export class OwnerMenuComponent implements OnInit {
         this.cancelEdit();
         this.cdr.markForCheck();
       },
+      // 'error' — callback invoked when the Observable errors (HTTP error, network failure, etc.)
       error: () => { this.savingEdit = false; }
     });
   }
 
-  onEditImageSelected(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
+  onEditImageSelected(event: Event) { // 'Event' — DOM Event type; the base interface for all browser events
+    // 'as HTMLInputElement' — type assertion; tells TypeScript the event target is an input element
+    const file = (event.target as HTMLInputElement).files?.[0]; // '?.' — optional chaining; avoids TypeError if files is null
+    // 'if' — guards against processing when no file was selected
     if (!file) return;
+    // FileReader — Web API class that reads file contents asynchronously
     const reader = new FileReader();
+    // Arrow function — callback invoked when the file has been read; 'reader.result' is the base64 data URL
     reader.onload = () => {
-      this.editItem.imageUrl = reader.result as string;
+      this.editItem.imageUrl = reader.result as string; // 'as string' — type assertion for the base64 result
       this.cdr.markForCheck();
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // readAsDataURL — encodes the file as a base64 data URL string
   }
 
-  onImageSelected(event: Event) {
+  onImageSelected(event: Event) { // 'Event' — DOM Event type; the base interface for all browser events
     const file = (event.target as HTMLInputElement).files?.[0];
+    // 'if' — guards against processing when no file was selected
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      this.newItem.imageUrl = reader.result as string;
+      this.newItem.imageUrl = reader.result as string; // 'as string' — type assertion for the base64 result
       this.cdr.markForCheck();
     };
     reader.readAsDataURL(file);

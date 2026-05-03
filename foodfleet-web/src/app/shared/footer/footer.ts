@@ -1,6 +1,10 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+/**
+ * Global footer component.
+ * Displays brand information, navigation links, social media icons, and the copyright year.
+ */
 @Component({
   selector: 'app-footer',
   standalone: true,

@@ -4,6 +4,11 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthResponse } from '../../core/models/auth.models';
 
+/**
+ * Global navigation bar component.
+ * Displays role-aware navigation links and a user menu with logout.
+ * Uses Angular signals to reactively reflect the current auth state.
+ */
 @Component({
   selector: 'app-navbar',
   standalone: true,
@@ -41,10 +46,15 @@ import { AuthResponse } from '../../core/models/auth.models';
   styleUrl: './navbar.scss'
 })
 export class NavbarComponent {
+  /** Signal reflecting the currently authenticated user, or `null` when logged out. */
   user: Signal<AuthResponse | null>;
+  /** Signal that is `true` when the current user has the Customer role. */
   isCustomer: Signal<boolean>;
+  /** Signal that is `true` when the current user has the RestaurantOwner role. */
   isOwner: Signal<boolean>;
+  /** Signal that is `true` when the current user has the Admin role. */
   isAdmin: Signal<boolean>;
+  /** Signal that is `true` when the current user has the DeliveryAgent role. */
   isAgent: Signal<boolean>;
 
   constructor(private auth: AuthService) {

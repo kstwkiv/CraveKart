@@ -6,6 +6,11 @@ import { AuthService } from '../../../core/services/auth.service';
 import { OrderDto } from '../../../core/models/order.models';
 import { RecommendationService, Recommendation } from '../../../core/services/recommendation.service';
 
+/**
+ * Order history component.
+ * Lists all orders for the authenticated customer sorted by date descending.
+ * Also loads personalised restaurant recommendations based on order history.
+ */
 @Component({
   selector: 'app-order-history',
   standalone: true,

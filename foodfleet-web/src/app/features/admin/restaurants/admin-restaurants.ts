@@ -1,14 +1,28 @@
+// 'import' — ES module keyword; pulls named exports from another module into this file's scope
+// 'Component' — Angular decorator factory; marks a class as a component and attaches template/style metadata
+// 'OnInit'    — Angular lifecycle-hook interface; requires ngOnInit() to be implemented; called after first ngOnChanges
 import { Component, OnInit } from '@angular/core';
+// 'CommonModule' — provides *ngIf, *ngFor, async pipe, and other structural directives
 import { CommonModule } from '@angular/common';
+// 'FormsModule' — Angular module that enables template-driven forms and [(ngModel)] two-way binding
 import { FormsModule } from '@angular/forms';
+// 'RouterLink' — directive that turns an anchor into a client-side navigation link
 import { RouterLink } from '@angular/router';
+// 'RestaurantService' — application service that wraps HTTP calls to the Restaurant API
 import { RestaurantService } from '../../../core/services/restaurant.service';
+// 'RestaurantDto' — TypeScript interface (pure type contract) for a restaurant data transfer object
 import { RestaurantDto } from '../../../core/models/restaurant.models';
 
+/**
+ * Admin restaurant management component.
+ * Lists all restaurants with status filter tabs and provides approve,
+ * reject, and suspend actions for each restaurant.
+ */
+// '@Component' — class decorator; Angular reads this metadata to compile the template and wire up DI
 @Component({
-  selector: 'app-admin-restaurants',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  selector: 'app-admin-restaurants',  // CSS selector used in templates/router to render this component
+  standalone: true,                   // standalone: true — no NgModule needed; the component manages its own imports
+  imports: [CommonModule, FormsModule, RouterLink], // 'imports' — Angular dependencies for this component's template
   template: `
     <div class="page">
       <div class="page-header">
@@ -93,35 +107,54 @@ import { RestaurantDto } from '../../../core/models/restaurant.models';
     .loading { text-align: center; padding: 3rem; color: var(--text-muted); }
   `]
 })
+// 'export' — makes this class importable by the Angular router and other modules
+// 'class'  — ES6/TypeScript keyword; defines a reusable blueprint with properties and methods
+// 'implements' — TypeScript keyword; enforces that the class satisfies the listed interface contracts
+// 'OnInit' — Angular lifecycle interface being implemented; requires ngOnInit() method
 export class AdminRestaurantsComponent implements OnInit {
-  restaurants: RestaurantDto[] = [];
+  // 'RestaurantDto[]' — Array type annotation; an ordered collection of RestaurantDto objects
+  restaurants: RestaurantDto[] = []; // '= []' — initialised to an empty array to avoid null-reference errors in the template
+  // 'boolean' (inferred) — primitive type; true/false flag to show/hide the loading indicator
   loading = false;
+  // 'string' (inferred) — tracks which status filter tab is currently active
   activeStatus = 'Pending';
+  // Array of string literals — the available filter tab labels
   statuses = ['All', 'Pending', 'Active', 'Rejected', 'Suspended'];
 
+  // 'constructor' — called by Angular's DI system when instantiating this class
+  // 'private' — access modifier; the injected service is only accessible within this class
   constructor(private restaurantSvc: RestaurantService) {}
 
+  // 'ngOnInit' — Angular lifecycle hook method; called once after the component's inputs are first set
   ngOnInit() { this.load(); }
 
-  setStatus(status: string) {
+  setStatus(status: string) { // 'string' — parameter type annotation
     this.activeStatus = status;
     this.load();
   }
 
   load() {
     this.loading = true;
+    // 'undefined' — JS/TS primitive; used here to signal "no filter" to the service when status is 'All'
     const status = this.activeStatus === 'All' ? undefined : this.activeStatus;
+    // 'subscribe' — RxJS method that activates an Observable and registers callbacks for next/error/complete
     this.restaurantSvc.adminGetAll(status).subscribe({
+      // 'next' — callback invoked when the Observable emits a value (successful HTTP response)
       next: r => { this.restaurants = r; this.loading = false; },
+      // 'error' — callback invoked when the Observable errors (HTTP error, network failure, etc.)
       error: () => this.loading = false
     });
   }
 
-  approve(r: RestaurantDto) {
+  approve(r: RestaurantDto) { // 'RestaurantDto' — type annotation; ensures only valid restaurant objects are passed
+    // 'subscribe' — activates the Observable; triggers the HTTP call and reloads the list on success
     this.restaurantSvc.approve(r.id).subscribe(() => this.load());
   }
 
   reject(r: RestaurantDto) {
+    // 'null' — JS/TS primitive; prompt() returns null when the user cancels the dialog
+    // 'if' — guards against sending a rejection with no reason
+    // 'return' — exits the function early if no reason was provided
     const reason = prompt('Reason for rejection:');
     if (!reason) return;
     this.restaurantSvc.reject(r.id, reason).subscribe(() => this.load());
@@ -129,6 +162,7 @@ export class AdminRestaurantsComponent implements OnInit {
 
   suspend(r: RestaurantDto) {
     const reason = prompt('Reason for suspension:');
+    // 'if' — guards against sending a suspension with no reason
     if (!reason) return;
     this.restaurantSvc.suspend(r.id, reason).subscribe(() => this.load());
   }

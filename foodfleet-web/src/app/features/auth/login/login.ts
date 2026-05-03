@@ -1,13 +1,30 @@
+// 'import' — ES module keyword; pulls named exports from another module into this file's scope
+// 'Component' — Angular decorator factory; marks a class as a component and attaches template/style metadata
 import { Component } from '@angular/core';
+// 'CommonModule' — provides *ngIf, *ngFor, async pipe, and other structural directives
 import { CommonModule } from '@angular/common';
+// 'FormBuilder' — Angular service that creates FormGroup/FormControl instances with less boilerplate
+// 'FormGroup'   — represents a group of form controls; tracks the combined validity and value
+// 'ReactiveFormsModule' — Angular module that enables reactive (model-driven) forms in templates
+// 'Validators'  — collection of built-in validator functions (required, email, minLength, etc.)
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+// 'Router'     — Angular service for programmatic navigation between routes
+// 'RouterLink' — directive that turns an anchor into a client-side navigation link
 import { Router, RouterLink } from '@angular/router';
+// 'AuthService' — application service that wraps HTTP calls to the Identity API
 import { AuthService } from '../../../core/services/auth.service';
 
+/**
+ * Login page component.
+ * Presents a two-panel layout with a branded visual on the left and a
+ * reactive login form on the right. On success, redirects the user to
+ * the role-appropriate dashboard.
+ */
+// '@Component' — class decorator; Angular reads this metadata to compile the template and wire up DI
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  selector: 'app-login',   // CSS selector used in templates/router to render this component: <app-login>
+  standalone: true,        // standalone: true — no NgModule needed; the component manages its own imports
+  imports: [CommonModule, ReactiveFormsModule, RouterLink], // 'imports' — Angular dependencies for this component's template
   template: `
     <div class="auth-page">
       <div class="auth-visual">
@@ -288,24 +305,41 @@ import { AuthService } from '../../../core/services/auth.service';
     }
   `]
 })
+// 'export' — makes this class importable by the Angular router and other modules
+// 'class'  — ES6/TypeScript keyword; defines a reusable blueprint with properties and methods
 export class LoginComponent {
+  // 'FormGroup' — typed reference to the reactive form group; tracks validity and values of all child controls
   form: FormGroup;
+  // 'boolean' (inferred) — primitive type; true/false flag to disable the submit button while the HTTP call is in flight
   loading = false;
+  // 'string' (inferred) — holds the error message to display; empty string means no error
   error = '';
 
+  // 'constructor' — special method called when Angular's DI system instantiates this class
+  // 'private' — access modifier; these injected services are only accessible within this class
   constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {
+    // 'this' — refers to the current class instance
+    // 'fb.group()' — FormBuilder method that creates a FormGroup from a config object
     this.form = this.fb.group({
+      // 'Validators.required' — built-in validator; marks the control invalid if the value is empty
+      // 'Validators.email'    — built-in validator; marks the control invalid if the value is not a valid email
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
     });
   }
 
   submit() {
+    // 'if' — conditional control-flow; short-circuits the function when the form is invalid
+    // 'return' — exits the function immediately; no HTTP call is made for an invalid form
     if (this.form.invalid) return;
     this.loading = true;
     this.error = '';
+    // '.login()' — returns an Observable; calling .subscribe() starts the HTTP request
+    // 'subscribe' — RxJS method that activates an Observable and registers callbacks for next/error/complete
     this.auth.login(this.form.value).subscribe({
+      // 'next' — callback invoked when the Observable emits a value (successful HTTP response)
       next: (res) => this.redirectByRole(res.role),
+      // 'error' — callback invoked when the Observable errors (HTTP error, network failure, etc.)
       error: (err) => {
         this.error = this.parseError(err);
         this.loading = false;
@@ -313,21 +347,28 @@ export class LoginComponent {
     });
   }
 
-  private parseError(err: any): string {
+  // 'private' — this helper is an implementation detail; not part of the public API of this class
+  private parseError(err: any): string { // 'any' — opt-out of type-checking; accepts any shape of error object
+    // 'if' — conditional checks for specific error shapes to produce user-friendly messages
     if (err.status === 0) return 'Cannot reach the server. Please check your connection or try again later.';
+    // 'typeof' — TypeScript/JS operator that returns the runtime type of a value as a string
     if (typeof err.error === 'string' && err.error.trim()) return err.error;
-    if (err.error?.message) return err.error.message;
+    if (err.error?.message) return err.error.message; // '?.' — optional chaining; avoids TypeError if err.error is null/undefined
     if (err.message) return err.message;
     return 'Invalid credentials. Please try again.';
   }
 
-  private redirectByRole(role: string) {
+  // 'private' — encapsulates role-based routing logic; not exposed to the template
+  private redirectByRole(role: string) { // 'string' — parameter type annotation
+    // 'const' — block-scoped variable declaration; the binding cannot be reassigned (though the object is still mutable)
+    // 'Record<string, string>' — TypeScript utility type; an object whose keys and values are both strings
     const routes: Record<string, string> = {
       Admin: '/admin/dashboard',
       Customer: '/restaurants',
       RestaurantOwner: '/owner/dashboard',
       DeliveryAgent: '/agent/dashboard'
     };
+    // '??' — nullish coalescing operator; falls back to '/' if routes[role] is null or undefined
     this.router.navigate([routes[role] ?? '/']);
   }
 }

@@ -44,6 +44,10 @@ public class RestaurantsController : ControllerBase
     }
 
     // GET /api/v1/restaurants/my  — owner sees all their restaurants regardless of status
+    /// <summary>
+    /// Retrieves all restaurants owned by the authenticated restaurant owner, regardless of status.
+    /// </summary>
+    /// <returns>A list of restaurant DTOs for the authenticated owner.</returns>
     [HttpGet("my")]
     [Authorize(Roles = "RestaurantOwner")]
     public async Task<IActionResult> GetMine()
@@ -70,6 +74,11 @@ public class RestaurantsController : ControllerBase
     }
 
     // GET /api/v1/restaurants/{id}  — public
+    /// <summary>
+    /// Retrieves a single restaurant by its unique identifier. Publicly accessible.
+    /// </summary>
+    /// <param name="id">The unique identifier of the restaurant.</param>
+    /// <returns>The restaurant DTO, or 404 if not found.</returns>
     [HttpGet("{id}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetById(Guid id)
@@ -80,6 +89,11 @@ public class RestaurantsController : ControllerBase
     }
 
     // POST /api/v1/restaurants  — RestaurantOwner or Admin
+    /// <summary>
+    /// Creates a new restaurant listing with Pending status. Accessible by RestaurantOwner and Admin roles.
+    /// </summary>
+    /// <param name="request">The request containing restaurant details.</param>
+    /// <returns>The created restaurant DTO.</returns>
     [HttpPost]
     [Authorize(Roles = "RestaurantOwner,Admin")]
     public async Task<IActionResult> Create([FromBody] CreateRestaurantRequest request)
@@ -106,6 +120,11 @@ public class RestaurantsController : ControllerBase
     }
 
     // PATCH /api/v1/restaurants/{id}/availability
+    /// <summary>
+    /// Toggles the open/closed availability status of a restaurant. Accessible by RestaurantOwner and Admin roles.
+    /// </summary>
+    /// <param name="id">The unique identifier of the restaurant.</param>
+    /// <returns>The new availability state, or 404 if not found.</returns>
     [HttpPatch("{id}/availability")]
     [Authorize(Roles = "RestaurantOwner,Admin")]
     public async Task<IActionResult> ToggleAvailability(Guid id)
@@ -116,6 +135,12 @@ public class RestaurantsController : ControllerBase
     }
 
     // PUT /api/v1/restaurants/{id}  — owner updates their own restaurant
+    /// <summary>
+    /// Updates an existing restaurant's details. Only the owning RestaurantOwner can update their restaurant.
+    /// </summary>
+    /// <param name="id">The unique identifier of the restaurant to update.</param>
+    /// <param name="request">The request containing updated restaurant details.</param>
+    /// <returns>The updated restaurant DTO, or 404 if not found or not owned by the caller.</returns>
     [HttpPut("{id}")]
     [Authorize(Roles = "RestaurantOwner")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRestaurantRequest request)

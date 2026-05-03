@@ -59,6 +59,12 @@ public class MenuController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Creates a new menu category for a restaurant. Accessible by RestaurantOwner and Admin roles.
+    /// </summary>
+    /// <param name="restaurantId">The unique identifier of the restaurant.</param>
+    /// <param name="request">The request containing the category name and sort order.</param>
+    /// <returns>The created menu category DTO.</returns>
     [HttpPost("restaurant/{restaurantId}/categories")]
     [Authorize(Roles = "RestaurantOwner,Admin")]
     public async Task<IActionResult> CreateCategory(Guid restaurantId, [FromBody] CreateMenuCategoryRequest request)
@@ -74,6 +80,12 @@ public class MenuController : ControllerBase
         return Ok(new MenuCategoryDto { Id = category.Id, Name = category.Name, Items = new() });
     }
 
+    /// <summary>
+    /// Creates a new menu item within a category. Accessible by RestaurantOwner and Admin roles.
+    /// </summary>
+    /// <param name="restaurantId">The unique identifier of the restaurant.</param>
+    /// <param name="request">The request containing menu item details.</param>
+    /// <returns>The created menu item DTO.</returns>
     [HttpPost("restaurant/{restaurantId}/items")]
     [Authorize(Roles = "RestaurantOwner,Admin")]
     public async Task<IActionResult> CreateItem(Guid restaurantId, [FromBody] CreateMenuItemRequest request)
@@ -90,6 +102,12 @@ public class MenuController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Updates an existing menu item. Accessible by RestaurantOwner and Admin roles.
+    /// </summary>
+    /// <param name="itemId">The unique identifier of the menu item to update.</param>
+    /// <param name="request">The request containing updated field values (all optional).</param>
+    /// <returns>The updated menu item DTO, or 404 if not found.</returns>
     [HttpPatch("items/{itemId}")]
     [Authorize(Roles = "RestaurantOwner,Admin")]
     public async Task<IActionResult> UpdateItem(Guid itemId, [FromBody] UpdateMenuItemRequest request)
@@ -114,6 +132,11 @@ public class MenuController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Deletes a menu item. Accessible by RestaurantOwner and Admin roles.
+    /// </summary>
+    /// <param name="itemId">The unique identifier of the menu item to delete.</param>
+    /// <returns>204 No Content on success, or 404 if not found.</returns>
     [HttpDelete("items/{itemId}")]
     [Authorize(Roles = "RestaurantOwner,Admin")]
     public async Task<IActionResult> DeleteItem(Guid itemId)

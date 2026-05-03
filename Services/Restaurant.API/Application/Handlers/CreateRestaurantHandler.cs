@@ -8,17 +8,32 @@ using Restaurant.API.Domain.Enums;
 
 namespace Restaurant.API.Application.Handlers;
 
+/// <summary>
+/// MediatR handler that processes <see cref="CreateRestaurantCommand"/> requests.
+/// Creates a new restaurant with Pending status awaiting admin approval.
+/// </summary>
 public class CreateRestaurantHandler : IRequestHandler<CreateRestaurantCommand, RestaurantDto>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEventPublisher _eventPublisher;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="CreateRestaurantHandler"/>.
+    /// </summary>
+    /// <param name="unitOfWork">The unit of work for data access.</param>
+    /// <param name="eventPublisher">The event publisher for raising domain events.</param>
     public CreateRestaurantHandler(IUnitOfWork unitOfWork, IEventPublisher eventPublisher)
     {
         _unitOfWork = unitOfWork;
         _eventPublisher = eventPublisher;
     }
 
+    /// <summary>
+    /// Handles the create restaurant request by persisting the new restaurant and returning its DTO.
+    /// </summary>
+    /// <param name="request">The command containing restaurant details.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A <see cref="RestaurantDto"/> representing the newly created restaurant.</returns>
     public async Task<RestaurantDto> Handle(CreateRestaurantCommand request, CancellationToken cancellationToken)
     {
         var restaurant = new Domain.Entities.Restaurant

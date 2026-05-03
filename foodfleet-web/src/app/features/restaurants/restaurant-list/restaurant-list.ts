@@ -5,8 +5,15 @@ import { FormsModule } from '@angular/forms';
 import { RestaurantService } from '../../../core/services/restaurant.service';
 import { RestaurantDto } from '../../../core/models/restaurant.models';
 
+/** Sort key options for the restaurant list. */
 type SortKey = 'rating' | 'delivery' | 'minOrder' | '';
 
+/**
+ * Restaurant list component.
+ * Displays all active restaurants with a hero section, cuisine filter chips,
+ * open-now toggle, sort options, and client-side pagination.
+ * Computes hero stats (avg rating, avg delivery time) from the loaded data.
+ */
 @Component({
   selector: 'app-restaurant-list',
   standalone: true,

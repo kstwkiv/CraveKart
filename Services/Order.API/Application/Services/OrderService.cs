@@ -8,11 +8,21 @@ using Order.API.Domain.Enums;
 
 namespace Order.API.Application.Services;
 
+/// <summary>
+/// Application service implementing <see cref="IOrderService"/> for core order management operations.
+/// Handles order placement, retrieval, cancellation, and status updates, publishing domain events
+/// via <see cref="IEventPublisher"/> for downstream service coordination.
+/// </summary>
 public class OrderService : IOrderService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEventPublisher _eventPublisher;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="OrderService"/>.
+    /// </summary>
+    /// <param name="unitOfWork">The unit of work for data access.</param>
+    /// <param name="eventPublisher">The event publisher for raising domain events.</param>
     public OrderService(IUnitOfWork unitOfWork, IEventPublisher eventPublisher)
     {
         _unitOfWork = unitOfWork;

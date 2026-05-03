@@ -6,6 +6,12 @@ import { RestaurantService } from '../../../core/services/restaurant.service';
 import { RestaurantDto } from '../../../core/models/restaurant.models';
 import { ToastComponent, ToastType } from '../../../shared/toast/toast';
 
+/**
+ * Edit restaurant component.
+ * Pre-populates a reactive form with the existing restaurant data and
+ * allows the owner to update details and optionally replace the logo image.
+ * Shows a toast notification on success or failure.
+ */
 @Component({
   selector: 'app-edit-restaurant',
   standalone: true,

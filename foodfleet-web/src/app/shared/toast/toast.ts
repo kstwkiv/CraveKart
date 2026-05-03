@@ -1,12 +1,30 @@
+// 'import' — ES module keyword; pulls named exports from another module into this file's scope
+// 'Component' — Angular decorator factory that marks a class as an Angular component and supplies metadata
+// '@angular/core' — Angular's core package; provides decorators, lifecycle hooks, and DI primitives
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+// 'Input'       — decorator that marks a class property as a data-binding input (parent → child)
+// 'Output'      — decorator that marks a class property as an event-binding output (child → parent)
+// 'EventEmitter'— Angular class that wraps RxJS Subject; used with @Output to emit custom DOM-like events
+// 'OnInit'      — lifecycle-hook interface; requires ngOnInit() to be implemented; called after first ngOnChanges
+// 'OnDestroy'   — lifecycle-hook interface; requires ngOnDestroy() to be implemented; called just before the component is destroyed
+// 'CommonModule'— Angular module that provides common directives like *ngIf, *ngFor, async pipe, etc.
 import { CommonModule } from '@angular/common';
 
-export type ToastType = 'success' | 'error';
+// 'export' — makes this type alias available to other modules
+// 'type'   — TypeScript keyword for creating a type alias; here it creates a union of two string literals
+/** The visual style variant of the toast notification. */
+export type ToastType = 'success' | 'error'; // union type: the value must be exactly one of these two strings
 
+/**
+ * Reusable toast notification component.
+ * Slides in from the top-right corner, auto-dismisses after `duration` ms,
+ * and emits a `closed` event when dismissed (either automatically or by the user).
+ */
+// '@Component' — class decorator; Angular reads its metadata to compile the component's template, styles, and DI
 @Component({
-  selector: 'app-toast',
-  standalone: true,
-  imports: [CommonModule],
+  selector: 'app-toast',   // CSS selector used in templates to instantiate this component: <app-toast>
+  standalone: true,        // standalone: true — component does not belong to an NgModule; imports its own dependencies
+  imports: [CommonModule], // 'imports' — declares which Angular modules/components this standalone component depends on
   template: `
     <div class="toast" [class.success]="type === 'success'" [class.error]="type === 'error'" [class.visible]="visible">
       <span class="toast-icon">{{ type === 'success' ? '✅' : '⚠️' }}</span>
@@ -69,30 +87,53 @@ export type ToastType = 'success' | 'error';
     }
   `]
 })
+// 'export' — makes this class importable by other Angular modules/components
+// 'class'  — ES6/TypeScript keyword; defines a blueprint for objects with properties and methods
+// 'implements' — TypeScript keyword; enforces that the class satisfies the listed interface contracts
+// 'OnInit', 'OnDestroy' — Angular lifecycle interfaces being implemented here
 export class ToastComponent implements OnInit, OnDestroy {
-  @Input() message = '';
-  @Input() type: ToastType = 'success';
-  @Input() duration = 4000;
+  /** The message text to display in the toast. */
+  // '@Input()' — property decorator; Angular's change-detection will update this when the parent binding changes
+  @Input() message = '';          // 'string' (inferred) — default empty string
+  /** The visual style variant of the toast. */
+  @Input() type: ToastType = 'success'; // 'ToastType' — the union type alias defined above
+  /** Duration in milliseconds before the toast auto-dismisses. Set to 0 to disable auto-dismiss. */
+  @Input() duration = 4000;       // 'number' (inferred) — milliseconds; default 4 seconds
+  /** Emitted when the toast has finished its exit animation and is fully dismissed. */
+  // '@Output()' — property decorator; exposes an event stream that parent components can listen to with (closed)="..."
+  // 'EventEmitter<void>' — generic class; <void> means the event carries no payload
+  // 'void' — TypeScript type meaning "no value"; used when a function/event returns/emits nothing meaningful
   @Output() closed = new EventEmitter<void>();
 
+  // 'boolean' — TypeScript primitive type: true or false; controls CSS class binding in the template
   visible = false;
-  private timer?: ReturnType<typeof setTimeout>;
+  // 'private' — access modifier; this property is only accessible within this class, not from outside
+  // 'ReturnType<typeof setTimeout>' — TypeScript utility type that infers the return type of setTimeout
+  private timer?: ReturnType<typeof setTimeout>; // '?' — optional; may be undefined if no timer is running
 
+  // 'ngOnInit' — Angular lifecycle hook method; called once after the component's inputs are first set
   ngOnInit() {
     // Slight delay so the enter animation triggers after DOM insertion
     requestAnimationFrame(() => { this.visible = true; });
+    // 'if' — conditional control-flow keyword; executes the block only when the condition is truthy
     if (this.duration > 0) {
       this.timer = setTimeout(() => this.dismiss(), this.duration);
     }
   }
 
+  // 'ngOnDestroy' — Angular lifecycle hook method; called just before Angular destroys the component
+  // Used here to cancel the timer and prevent memory leaks / callbacks on unmounted components
   ngOnDestroy() {
+    // 'if' — guards against calling clearTimeout when no timer was set
     if (this.timer) clearTimeout(this.timer);
   }
 
   dismiss() {
+    // 'false' — boolean literal; hides the toast by removing the CSS 'visible' class
     this.visible = false;
     // Wait for exit animation before emitting
+    // Arrow function '() =>' — concise anonymous function; captures 'this' from the enclosing scope (lexical this)
     setTimeout(() => this.closed.emit(), 350);
+    // '.emit()' — EventEmitter method; fires the output event so parent components receive the notification
   }
 }

@@ -1,52 +1,88 @@
+// 'using' — imports System.Text so StringBuilder is available for efficient string construction
 using System.Text;
+// 'using' — imports the shared Orders events namespace so OrderPlacedEvent is in scope
 using FoodFleet.Shared.Events.Orders;
+// 'using' — imports MassTransit so IConsumer<> and ConsumeContext<> are available
 using MassTransit;
+// 'using' — imports Microsoft.Extensions.Logging so ILogger<> is available
 using Microsoft.Extensions.Logging;
+// 'using' — imports the Notification application interfaces namespace (IEmailService)
 using Notification.API.Application.Interfaces;
 
+// 'namespace' — logical grouping that prevents name collisions across the solution
 namespace Notification.API.Infrastructure.Consumers;
 
+// 'public' — access modifier: visible to MassTransit's consumer registration in DI
+// 'class' — reference type; MassTransit creates a new instance per message
+// IConsumer<OrderPlacedEvent> — MassTransit contract: this class handles OrderPlacedEvent messages
 public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
 {
+    // 'private readonly' — encapsulated, immutable after construction; set via Dependency Injection
     private readonly IEmailService _emailService;
+
+    // 'private readonly' — ILogger<T> is the standard .NET logging abstraction
     private readonly ILogger<OrderPlacedConsumer> _logger;
 
+    // 'public' — constructor must be public for the DI container to instantiate this consumer
     public OrderPlacedConsumer(IEmailService emailService, ILogger<OrderPlacedConsumer> logger)
     {
         _emailService = emailService;
         _logger = logger;
     }
 
+    // 'public' — satisfies the IConsumer<OrderPlacedEvent> interface contract
+    // 'async' — enables await; the compiler generates a state machine for non-blocking execution
+    // 'Task' — represents the in-flight async work with no result value (void equivalent for async)
+    // ConsumeContext<OrderPlacedEvent> — MassTransit wrapper providing the message and metadata
     public async Task Consume(ConsumeContext<OrderPlacedEvent> context)
     {
+        // 'var' — compiler infers OrderPlacedEvent; context.Message is the deserialized event payload
         var msg = context.Message;
+        // LogInformation — structured log at Information level; {OrderId} and {Email} are named placeholders
         _logger.LogInformation("OrderPlacedConsumer: received order {OrderId} for {Email}", msg.OrderId, msg.CustomerEmail);
 
+        // 'if' — guards against sending email when the address is missing or whitespace-only
         if (string.IsNullOrWhiteSpace(msg.CustomerEmail))
         {
             _logger.LogWarning("OrderPlacedConsumer: CustomerEmail is empty for order {OrderId} — skipping email.", msg.OrderId);
+            // 'return' — exits the method early without sending an email
             return;
         }
 
+        // 'var' — compiler infers string; BuildEmailBody constructs the full HTML email body
         var body = BuildEmailBody(msg);
 
+        // 'await' — suspends execution until the email is dispatched, freeing the thread
         await _emailService.SendAsync(
             msg.CustomerEmail,
+            // string interpolation ($"...") — embeds expressions inside a string literal
+            // ToString()[..8] — range operator: takes the first 8 characters of the GUID string
+            // ToUpper() — converts the substring to uppercase for a readable order reference
             $"✅ Order #{msg.OrderId.ToString()[..8].ToUpper()} Placed Successfully!",
             body);
 
         _logger.LogInformation("OrderPlacedConsumer: email dispatched for order {OrderId}", msg.OrderId);
     }
 
+    // 'private' — helper method is only used within this class
+    // 'static' — no instance state is needed; belongs to the class, not an instance
+    // 'string' — return type is the built-in Unicode string reference type
     private static string BuildEmailBody(OrderPlacedEvent msg)
     {
+        // 'var' — compiler infers StringBuilder; used for efficient mutable string construction
+        // 'new' — allocates a new StringBuilder on the managed heap
         var sb = new StringBuilder();
 
         // Items rows
+        // 'var' — compiler infers StringBuilder for the items HTML fragment
         var itemsHtml = new StringBuilder();
+        // 'foreach' — iteration statement: executes the block once for each element in the collection
+        // 'var' — compiler infers the item type from msg.Items (e.g., OrderItemDto)
         foreach (var item in msg.Items)
         {
+            // 'var' — compiler infers decimal; calculates the line total for this item
             var lineTotal = item.UnitPrice * item.Quantity;
+            // Append — adds the interpolated HTML string to the StringBuilder buffer
             itemsHtml.Append($"""
                 <tr>
                   <td style="padding:10px 8px;border-bottom:1px solid #f0f0f0;">{item.MenuItemName}{(string.IsNullOrWhiteSpace(item.Customizations) ? "" : $"<br/><small style='color:#888;'>{item.Customizations}</small>")}</td>
@@ -57,12 +93,15 @@ public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
                 """);
         }
 
+        // 'var' — compiler infers string; switch expression maps payment method to an icon
+        // 'switch' expression — pattern-matching construct that returns a value based on the input
         var paymentIcon = msg.PaymentMethod switch
         {
             "CashOnDelivery" => "💵",
             "UpiNow"         => "📲",
-            _                => "💳"
+            _                => "💳" // '_' — discard pattern: matches any value not handled above
         };
+        // 'var' — compiler infers string; maps payment method to a human-readable label
         var paymentLabel = msg.PaymentMethod switch
         {
             "CashOnDelivery" => "Cash on Delivery",
@@ -70,6 +109,7 @@ public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
             _                => msg.PaymentMethod
         };
 
+        // Append the full HTML email template using a raw string literal (""" ... """)
         sb.Append($"""
             <!DOCTYPE html>
             <html lang="en">
@@ -204,6 +244,7 @@ public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
             </html>
             """);
 
-        return sb.ToString();
+        // 'return' — exits the method and returns the fully built HTML string to the caller
+        return sb.ToString(); // ToString() — materialises the StringBuilder buffer into an immutable string
     }
 }
