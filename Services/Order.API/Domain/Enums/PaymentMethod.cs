@@ -9,5 +9,8 @@ public enum PaymentMethod
     UpiNow,
 
     /// <summary>Pay in cash when the order is delivered.</summary>
-    CashOnDelivery
+    CashOnDelivery,
+
+    /// <summary>Legacy card payment — kept for backward compatibility with existing orders in the database.</summary>
+    Card
 }

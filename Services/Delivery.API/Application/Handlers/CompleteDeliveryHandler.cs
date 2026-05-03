@@ -72,6 +72,7 @@ public class CompleteDeliveryHandler : IRequestHandler<CompleteDeliveryCommand, 
             // 'true' — boolean literal; marks the agent as available for new deliveries
             agent.IsAvailable = true;
             agent.TotalDeliveries++; // '++' — post-increment operator; adds 1 to the integer field
+            agent.TotalEarnings += 100m; // ₹100 per completed delivery — must match EARN_PER_DELIVERY on the frontend
             _unitOfWork.Deliveries.UpdateAgent(agent);
         }
 

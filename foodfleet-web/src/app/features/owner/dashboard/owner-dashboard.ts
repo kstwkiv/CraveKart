@@ -59,13 +59,9 @@ import { OrderDto } from '../../../core/models/order.models';
 
         <!-- '*ngFor' — structural directive that stamps out one DOM node per item in an iterable -->
         <!-- 'let r of restaurants' — loop variable 'r' holds the current RestaurantDto on each iteration -->
-        <div *ngFor="let r of restaurants" class="restaurant-card"
-
-          <!-- '[class.selected]' — property binding; adds the CSS class 'selected' when the expression is truthy -->
-          [class.selected]="selected?.id === r.id"
-
-          <!-- '(click)' — event binding; listens for the native DOM click event and calls the handler -->
-          (click)="select(r)">
+        <!-- '[class.selected]' — property binding; adds the CSS class 'selected' when the expression is truthy -->
+        <!-- '(click)' — event binding; listens for the native DOM click event and calls the handler -->
+        <div *ngFor="let r of restaurants" class="restaurant-card" [class.selected]="selected?.id === r.id" (click)="select(r)">
 
           <!-- '*ngIf' on logo — conditionally renders the real image or a placeholder emoji -->
           <div class="card-logo" *ngIf="r.logoUrl"><img [src]="r.logoUrl" [alt]="r.name" /></div>

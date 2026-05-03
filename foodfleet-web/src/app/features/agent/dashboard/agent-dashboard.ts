@@ -93,7 +93,7 @@ interface ActiveDelivery {
               <div class="stat-val">₹{{ displayEarnings | number:'1.0-0' }}</div>
               <div class="stat-lbl">Total Earnings</div>
             </div>
-            <div class="stat-trend">+₹25 per delivery</div>
+            <div class="stat-trend">+₹100 per delivery</div>
             <span class="stat-chevron">{{ activePanel === 'earnings' ? '▲' : '▼' }}</span>
           </div>
           <div class="stat-card deliveries" [class.active]="activePanel === 'deliveries'" (click)="togglePanel('deliveries')">
@@ -144,7 +144,7 @@ interface ActiveDelivery {
             </div>
             <div class="panel-row">
               <span>Earnings per Delivery</span>
-              <strong>₹25.00</strong>
+              <strong>₹100.00</strong>
             </div>
             <div class="panel-row">
               <span>Average per Delivery</span>
@@ -152,10 +152,10 @@ interface ActiveDelivery {
             </div>
             <div class="panel-row muted">
               <span>Next delivery will earn</span>
-              <strong class="green">+₹25</strong>
+              <strong class="green">+₹100</strong>
             </div>
             <div class="panel-note">
-              💡 Earnings are calculated at ₹25 per completed delivery. Payouts are processed weekly.
+              💡 Earnings are calculated at ₹100 per completed delivery. Payouts are processed weekly.
             </div>
           </div>
         </div>
@@ -622,6 +622,8 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
         this.pickingUp = null;
         // 'if' — guards against updating a potentially undefined profile
         if (this.profile) this.profile = { ...this.profile, isAvailable: false };
+        // Update order status to PickedUp (4) so the customer's tracking page reflects the pickup
+        this.orderSvc.updateStatus(order.id, 4).subscribe({ error: () => {} });
       },
       error: (err) => {
         this.pickingUp = null;
@@ -661,7 +663,7 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
   completeDelivery() {
     // 'if' — guards against completing when there is no active delivery or the user cancels the confirm dialog
     // 'return' — exits the function early in either guard case
-    if (!this.activeDelivery || !confirm('Mark this order as delivered?')) return;
+    if (!this.activeDelivery || !confirm('🎉 Thanks for picking up! Mark this order as delivered?')) return;
     const orderId = this.activeDelivery.orderId;
     this.completing = true;
     // 'subscribe' — activates the Observable; triggers the HTTP POST call to mark the delivery complete

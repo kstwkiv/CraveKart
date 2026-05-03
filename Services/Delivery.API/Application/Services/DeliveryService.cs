@@ -130,14 +130,22 @@ public class DeliveryService : IDeliveryService
 
         await _unitOfWork.SaveChangesAsync();
 
-        await _eventPublisher.PublishAsync(new DeliveryCompletedEvent
+        // Publish event — wrapped so a transient messaging failure doesn't fail the delivery completion
+        try
         {
-            OrderId = delivery.OrderId,
-            AgentId = delivery.AgentId,
-            CustomerId = delivery.CustomerId,
-            CustomerEmail = delivery.CustomerEmail,
-            CompletedAt = delivery.CompletedAt!.Value
-        }, cancellationToken);
+            await _eventPublisher.PublishAsync(new DeliveryCompletedEvent
+            {
+                OrderId = delivery.OrderId,
+                AgentId = delivery.AgentId,
+                CustomerId = delivery.CustomerId,
+                CustomerEmail = delivery.CustomerEmail,
+                CompletedAt = delivery.CompletedAt!.Value
+            }, cancellationToken);
+        }
+        catch
+        {
+            // Event publish failure is non-critical — delivery is already saved in the DB
+        }
 
         return true;
     }
