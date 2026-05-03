@@ -196,6 +196,139 @@ FoodFleetMicroservices/
 
 ---
 
+## Testing
+
+CraveKart includes a dedicated NUnit test project that covers the core business logic of the backend services using **mocked dependencies** (no database or message broker required).
+
+### Test Project Location
+
+```
+Tests/
+└── FoodFleet.Tests/
+    ├── FoodFleet.Tests.csproj
+    ├── Identity/
+    │   └── AuthServiceTests.cs          # 7 tests
+    ├── Orders/
+    │   ├── PlaceOrderHandlerTests.cs    # 7 tests
+    │   └── CancelOrderHandlerTests.cs   # 9 tests
+    ├── Payments/
+    │   └── PaymentServiceTests.cs       # 13 tests
+    └── Delivery/
+        └── AssignDeliveryHandlerTests.cs # 6 tests
+```
+
+### Tools & Libraries
+
+| Tool | Purpose |
+|---|---|
+| **NUnit 4** | Test framework — `[TestFixture]`, `[Test]`, `[TestCase]`, `Assert.That` |
+| **Moq 4** | Mocking framework — replaces DB, JWT, password, and event-bus dependencies |
+| **NUnit3TestAdapter** | Runs NUnit tests via `dotnet test` |
+| **coverlet** | Code coverage collection |
+
+### Running the Tests
+
+From the repository root:
+
+```bash
+# Run all tests
+dotnet test FoodFleetMicroservices/Tests/FoodFleet.Tests/FoodFleet.Tests.csproj
+
+# Run with detailed per-test output
+dotnet test FoodFleetMicroservices/Tests/FoodFleet.Tests/FoodFleet.Tests.csproj \
+  --logger "console;verbosity=detailed"
+
+# Run with code coverage
+dotnet test FoodFleetMicroservices/Tests/FoodFleet.Tests/FoodFleet.Tests.csproj \
+  --collect:"XPlat Code Coverage"
+```
+
+Expected output:
+
+```
+Total tests: 42
+     Passed: 42
+ Total time: ~11 Seconds
+```
+
+### What Is Tested
+
+#### `AuthServiceTests` — Identity.API
+| Test | Scenario |
+|---|---|
+| `RegisterAsync_NewEmail_ReturnsAuthResponseWithToken` | Happy path — new user registered, JWT returned |
+| `RegisterAsync_UnknownRole_DefaultsToCustomer` | Unrecognised role string falls back to `Customer` |
+| `RegisterAsync_DuplicateEmail_ThrowsException` | Duplicate email raises an exception |
+| `LoginAsync_ValidCredentials_ReturnsAuthResponseWithTokens` | Correct credentials return access + refresh tokens |
+| `LoginAsync_UserNotFound_ThrowsException` | Unknown email raises an exception |
+| `LoginAsync_WrongPassword_ThrowsException` | Wrong password raises an exception |
+| `LoginAsync_DeactivatedAccount_ThrowsException` | Deactivated account raises an exception |
+
+#### `PlaceOrderHandlerTests` — Order.API
+| Test | Scenario |
+|---|---|
+| `PlaceOrder_TwoItems_CalculatesCorrectTotal` | (2×150)+(1×40)+fee+tax = ₹387 |
+| `PlaceOrder_SingleItem_CalculatesCorrectTotal` | 1×200+fee+tax = ₹240 |
+| `PlaceOrder_MultipleQuantity_CalculatesCorrectTotal` | 3×100+fee+tax = ₹345 |
+| `PlaceOrder_ValidCommand_PersistsOrderToRepository` | `AddAsync` called once, entity has `Placed` status |
+| `PlaceOrder_ValidCommand_PublishesOrderPlacedEvent` | `PublishAsync` called once |
+| `PlaceOrder_NewOrder_HasPlacedStatus` | New order always starts as `Placed` |
+| `PlaceOrder_Command_ItemsArePreservedInDto` | DTO item count matches command |
+
+#### `CancelOrderHandlerTests` — Order.API
+| Test | Scenario |
+|---|---|
+| `Handle_CancellableStatus_ReturnsTrueAndSetsStatusCancelled` (×2) | `Placed` and `Confirmed` orders can be cancelled |
+| `Handle_CancellableStatus_SavesChangesAndPublishesEvent` (×2) | DB saved and event published on success |
+| `Handle_OrderNotFound_ReturnsFalseWithNoSideEffects` | Missing order returns `false`, no DB write |
+| `Handle_NonCancellableStatus_ThrowsException` (×4) | `Preparing`, `Ready`, `PickedUp`, `Delivered` throw |
+| `Handle_NonCancellableStatus_NoDbWriteOrEvent` (×2) | No side effects when cancellation is rejected |
+
+#### `PaymentServiceTests` — Payment.API
+| Test | Scenario |
+|---|---|
+| `ProcessAsync_ValidCommand_ReturnsConfirmedPaymentDto` | UPI payment returns `Confirmed` status |
+| `ProcessAsync_ValidCommand_PersistsAndPublishesConfirmedEvent` | Persists and publishes `PaymentConfirmedEvent` |
+| `CreatePendingAsync_CodCommand_ReturnsPendingPaymentDto` | COD payment returns `Pending` status |
+| `CreatePendingAsync_CodCommand_DoesNotPublishEvent` | No event published for pending COD |
+| `RefundAsync_ConfirmedPayment_ReturnsRefundedDtoAndPublishesEvent` | Confirmed payment refunded + event published |
+| `RefundAsync_PaymentNotFound_ReturnsNull` | Missing payment returns `null` |
+| `RefundAsync_AlreadyRefunded_ThrowsInvalidOperationException` | Double-refund raises exception |
+| `RefundAsync_FailedPayment_ThrowsInvalidOperationException` | Cannot refund a failed payment |
+| `GetByOrderIdAsync_ExistingOrder_ReturnsDto` | Found payment returns DTO |
+| `GetByOrderIdAsync_MissingOrder_ReturnsNull` | Missing payment returns `null` |
+| `GetByCustomerIdAsync_ReturnsAllCustomerPayments` | Returns all payments for a customer |
+
+#### `AssignDeliveryHandlerTests` — Delivery.API
+| Test | Scenario |
+|---|---|
+| `Handle_AvailableAgent_ReturnsDeliveryDtoWithCorrectFields` | Correct order ID, agent ID, and `Assigned` status |
+| `Handle_AvailableAgent_MarksAgentUnavailable` | Agent `IsAvailable` set to `false` |
+| `Handle_AvailableAgent_PersistsDeliveryRecord` | `AddAsync` and `SaveChangesAsync` called once |
+| `Handle_AvailableAgent_PublishesDeliveryAssignedEvent` | `PublishAsync` called once |
+| `Handle_NoAvailableAgent_ThrowsException` | No agents available raises exception |
+| `Handle_NoAvailableAgent_NoDbWriteOrEvent` | No side effects when no agent is found |
+
+### Testing Approach
+
+All tests follow the **Arrange / Act / Assert** pattern and use **constructor injection mocking** — each test creates fresh `Mock<T>` instances in `[SetUp]` to prevent state leakage between tests.
+
+```csharp
+// Example: verifying a mock interaction
+_publisher.Verify(
+    p => p.PublishAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()),
+    Times.Once);
+
+// Example: parameterised test covering multiple enum values
+[TestCase(OrderStatus.Placed)]
+[TestCase(OrderStatus.Confirmed)]
+public async Task Handle_CancellableStatus_ReturnsTrueAndSetsStatusCancelled(OrderStatus status)
+```
+
+No database, no RabbitMQ, and no HTTP calls are made during test execution — all external dependencies are replaced by Moq stubs.
+
+---
+
 ## License
 
 MIT License — feel free to use, modify, and distribute.

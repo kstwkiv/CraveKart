@@ -11,5 +11,8 @@
     <Project Path="Shared/FoodFleet.Shared.Events/FoodFleet.Shared.Events.csproj" />
     <Project Path="Shared/FoodFleet.Shared.Messaging/FoodFleet.Shared.Messaging.csproj" />
   </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/FoodFleet.Tests/FoodFleet.Tests.csproj" />
+  </Folder>
   <Project Path="ApiGateway/ApiGateway.csproj" />
 </Solution>
