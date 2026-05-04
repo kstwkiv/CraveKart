@@ -45,7 +45,7 @@ import { AuthService } from '../../../core/services/auth.service';
             <p class="subtitle">Welcome back — let's find your next meal</p>
           </div>
 
-          <form [formGroup]="form" (ngSubmit)="submit()">
+          <form [formGroup]="form" (ngSubmit)="submit()"> 
             <div class="field">
               <label>Email address</label>
               <input type="email" formControlName="email" placeholder="aaaa@example.com" />

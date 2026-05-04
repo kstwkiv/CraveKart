@@ -5,6 +5,12 @@ using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using System.Text;
 
+// Theory: In a microservices architecture, an API Gateway serves as a single entry point for client requests,
+// routing them to appropriate microservices while handling cross-cutting concerns like authentication,
+// authorization, rate limiting, logging, and request/response transformation. This pattern improves
+// scalability, security, and maintainability by decoupling clients from the internal service topology.
+// Ocelot is used here as the API Gateway framework to manage routing, load balancing, and middleware.
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
@@ -58,5 +64,5 @@ if (!app.Environment.IsDevelopment()) app.UseHttpsRedirection();
 app.UseCors("Angular");
 app.UseAuthentication();
 app.UseAuthorization();
-await app.UseOcelot();
+await app.UseOcelot(); //gateway routing middleware
 app.Run();
